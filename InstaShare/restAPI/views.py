@@ -22,7 +22,7 @@ class UserList(APIView):
             return Response(serializer.data)
 
 class CreateUserView(CreateAPIView):
-    model = models.UserExtension
+    model = User
     permission_classes = [
         permissions.AllowAny # Or anon users can't register
     ]

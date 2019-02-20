@@ -16,21 +16,12 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def create(self, validated_data):
-   #username = validated_data.pop('username')
-        #password = validated_data.pop('password')
-        #email = validated_data.pop('email')
-        #first_name = validated_data.pop('first_name')
-        #last_name = validated_data.pop('last_name')
+        user_data = validated_data.pop('user')
 
-        user = User.objects.create(
-            username=validated_data.pop('username'),
-            email=validated_data.pop('email'),
-            first_name=validated_data.pop('first_name'),
-            last_name=validated_data.pop('last_name')
+        user = User.objects.create_user(
+            **user_data
         )
         user.is_staff = False
-        user.set_password(validated_data.pop('password'))
-        user.save()
         userExention = models.UserExtension.objects.create(user=user, **validated_data)
 
         return userExention

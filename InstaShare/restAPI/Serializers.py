@@ -3,6 +3,12 @@ from rest_framework import serializers
 from restAPI import models
 
 class UserSerializer(serializers.ModelSerializer):
+    """Serializer used for parsing our User JSON Data
+    
+    The serializer utilizes two models: BaseUser, UserExtension. First, the serializer established what fields
+    are part of the User model. Then the Meta Class defines the expected fields for the JSON data. Finally, we define a create
+    method to define the creation of the new User Objects and Models.
+    """
     username = serializers.CharField(source='user.username')
     password = serializers.CharField(style={'input_type': 'password'}, source='user.password')
     email = serializers.EmailField(source='user.email')
@@ -25,3 +31,5 @@ class UserSerializer(serializers.ModelSerializer):
         userExention = models.UserExtension.objects.create(user=user, **validated_data)
 
         return userExention
+
+

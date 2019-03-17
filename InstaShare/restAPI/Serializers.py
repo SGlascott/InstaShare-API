@@ -32,4 +32,20 @@ class UserSerializer(serializers.ModelSerializer):
 
         return userExention
 
+class ContactSerializer(serializers.ModelSerializer):
+    #contact_photo = serializers.ImageField()
+
+    class meta:
+        model = models.Contact
+        fields = ('id', 'first_name', 'last_name', 'phone_number', 'contact_photo')
+        read_only_fields = ('id')
+
+    def create(self, validated_data):
+        #photo = validated_data.pop('contact_photo')
+        #upload to AWS and save collectionID here:
+        collection_id = 'TEST COL ID'
+        print('Type: ', type(validated_data) )
+        print(validated_data)
+        contact = models.Contact.objects.create(user=request.user, collection_id=collection_id, **validated_data)
+
 

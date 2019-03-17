@@ -31,3 +31,12 @@ class CreateUserView(CreateAPIView):
 class UserDetail(generics.RetrieveAPIView):
     queryset = models.UserExtension.objects.all()
     serializer_class = Serializers.UserSerializer
+
+
+class ContactView(APIView):
+    def post(self, request, format=None):
+        serializer = Serializers.ContactSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user = request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

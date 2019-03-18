@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from restAPI import models
 
+
 class UserSerializer(serializers.ModelSerializer):
     """Serializer used for parsing our User JSON Data
     
@@ -32,20 +33,34 @@ class UserSerializer(serializers.ModelSerializer):
 
         return userExention
 
-class ContactSerializer(serializers.ModelSerializer):
-    #contact_photo = serializers.ImageField()
-
-    class meta:
+class ContactSerializer(serializers.ModelSerializer):  
+    class Meta:
         model = models.Contact
-        fields = ('id', 'first_name', 'last_name', 'phone_number', 'contact_photo')
-        read_only_fields = ('id')
+        fields = ('id', 'first_name', 'last_name', 'phone_number')
+        read_only_fields = ('id',)
 
     def create(self, validated_data):
-        #photo = validated_data.pop('contact_photo')
         #upload to AWS and save collectionID here:
-        collection_id = 'TEST COL ID'
-        print('Type: ', type(validated_data) )
-        print(validated_data)
-        contact = models.Contact.objects.create(user=request.user, collection_id=collection_id, **validated_data)
+        contact = models.Contact.objects.create(face_id='1231231', **validated_data)
+
+        return contact
+
+class ContactsObjectSerializer(serializers.Serializer):
+    contact_photo = serializers.ImageField()
+    class Meta:
+        fields = ('contact_photo', )
+    
+    def create(self, validated_data):
+        return contact(**validated_data)
+    
+    class contact(object):
+        def __init__(self, photo):
+            self.photo = photo
+        def __str__(self):
+            if photo != None:
+                return 'VALID'
+            else:
+                return 'Not Valid'
+
 
 

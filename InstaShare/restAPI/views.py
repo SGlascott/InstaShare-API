@@ -35,8 +35,13 @@ class UserDetail(generics.RetrieveAPIView):
 
 class ContactView(APIView):
     def post(self, request, format=None):
-        serializer = Serializers.ContactSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user = request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        contact_photo = Serializers.ContactsObjectSerializer(data=request.data)
+        if contact_photo.is_valid():
+            print(contact_photo)
+            serializer = Serializers.ContactSerializer(data=request.data)
+            if serializer.is_valid():
+                print(serializer)
+                serializer.save(user = request.user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)

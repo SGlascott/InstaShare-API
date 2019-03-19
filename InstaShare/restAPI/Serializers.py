@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from restAPI import models
-
+from .Tools.aws import CollectionTools
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer used for parsing our User JSON Data
@@ -18,7 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.UserExtension
-        fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'phoneNumber')
+        fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'phone_number')
         write_only_fields = ('password',)
         read_only_fields = ('id',)
 
@@ -29,10 +29,14 @@ class UserSerializer(serializers.ModelSerializer):
             **user_data
         )
         user.is_staff = False
-        userExention = models.UserExtension.objects.create(user=user, **validated_data)
+
+        collection_id = CollectionTools.creating_a_collection(user.id)
+
+        userExention = models.UserExtension.objects.create(user=user, contacts_collection_id=collection_id, **validated_data)
 
         return userExention
 
+#Serializer for contact view
 class ContactSerializer(serializers.ModelSerializer):  
     class Meta:
         model = models.Contact
@@ -45,6 +49,7 @@ class ContactSerializer(serializers.ModelSerializer):
 
         return contact
 
+#Second serializer for contact upload, used for seperating the contact photo from the data.
 class ContactsObjectSerializer(serializers.Serializer):
     contact_photo = serializers.ImageField()
     class Meta:
@@ -56,11 +61,6 @@ class ContactsObjectSerializer(serializers.Serializer):
     class contact(object):
         def __init__(self, photo):
             self.photo = photo
-        def __str__(self):
-            if photo != None:
-                return 'VALID'
-            else:
-                return 'Not Valid'
 
 
 

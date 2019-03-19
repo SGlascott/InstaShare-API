@@ -8,8 +8,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from restAPI import models, Serializers
 
+from .Tools.aws import CollectionTools
 
-# Create your views here.
+# Returns list of users if staff otherwise it returns the user who calls it
 class UserList(APIView):
     def get(self, request, format=None):
         if request.user.is_staff:
@@ -21,6 +22,7 @@ class UserList(APIView):
             serializer = Serializers.UserSerializer(user)
             return Response(serializer.data)
 
+#Create new User
 class CreateUserView(CreateAPIView):
     model = User
     permission_classes = [
@@ -28,20 +30,26 @@ class CreateUserView(CreateAPIView):
     ]
     serializer_class = Serializers.UserSerializer
 
+
+#old, may not need anymore
 class UserDetail(generics.RetrieveAPIView):
     queryset = models.UserExtension.objects.all()
     serializer_class = Serializers.UserSerializer
 
-
+#new contact view
 class ContactView(APIView):
     def post(self, request, format=None):
         contact_photo = Serializers.ContactsObjectSerializer(data=request.data)
         if contact_photo.is_valid():
-            print(contact_photo)
+            user_ext = models.UserExtension.objects.get(user=request.user)
+            #dont know if its saving photo
+            contact_photo.data.pop('contact_photo')
+            #face_id = CollectionTools.adding_faces_to_a_collection(request.user.id, user_ext.contacts_collection_id, contact_photo.data.pop('contact_photo'))
+            print(face_id)
             serializer = Serializers.ContactSerializer(data=request.data)
             if serializer.is_valid():
                 print(serializer)
-                serializer.save(user = request.user)
+                #serializer.save(user = request.user, face_id=face_id)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)

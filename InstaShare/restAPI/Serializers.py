@@ -45,20 +45,20 @@ class ContactSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         #upload to AWS and save collectionID here:
-        contact = models.Contact.objects.create(face_id='1231231', **validated_data)
+        contact = models.Contact.objects.create(**validated_data)
 
         return contact
 
 #Second serializer for contact upload, used for seperating the contact photo from the data.
 class ContactsObjectSerializer(serializers.Serializer):
-    contact_photo = serializers.ImageField()
+    contact_photo = serializers.ImageField()    
     class Meta:
         fields = ('contact_photo', )
     
     def create(self, validated_data):
-        return contact(**validated_data)
+        return ContactsObjectSerializer.contactObj(validated_data.pop('contact_photo'))
     
-    class contact(object):
+    class contactObj(object):
         def __init__(self, photo):
             self.photo = photo
 

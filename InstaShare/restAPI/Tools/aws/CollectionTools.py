@@ -1,9 +1,9 @@
 import boto3
 from botocore.client import Config
 
-bucket_name = 'instashare-images'
-ACCESS_KEY_ID = 'AKIAILF5MWEQTDA654IA'
-ACCESS_SECRET_KEY = '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'
+bucket_name = ''
+ACCESS_KEY_ID = ''
+ACCESS_SECRET_KEY = ''
 
 # "creating a collection" function takes user_id as parameter
 # and creates a collection

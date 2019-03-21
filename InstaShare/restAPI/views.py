@@ -7,6 +7,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from restAPI import models, Serializers
+from django.core.exceptions import ObjectDoesNotExist
 
 from .Tools.aws import CollectionTools, RekognitionTools
 from .Tools.DevOps import credentials
@@ -59,6 +60,21 @@ class RekognitionView(APIView):
         group_photo = Serializers.RekognitionSerializer(data = request.data)
         if group_photo.is_valid():
             group_photo = group_photo.save()
-            print(request.user)
-            return Response(status=status.HTTP_200_OK)
+            user_id = request.user.id
+            collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
+            face_ids = RekognitionTools.search_faces_by_image(user_id, group_photo.photo, collection_id)
+            contacts = None
+            for i in face_ids:
+                print(i)
+                try:
+                    contacts = models.Contact.objects.get(face_id=i)
+                    print(i, 'found')
+                except ObjectDoesNotExist:
+                    print(' Not found')
+            
+            contact_serializer = Serializers.ContactRekognitionSerializer(data = {'id': contacts.pk, 'first_name': contacts.first_name, 'last_name': contacts.last_name})
+            if contact_serializer.is_valid():
+                return Response(contact_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)

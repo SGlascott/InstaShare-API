@@ -62,4 +62,10 @@ def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
 		CollectionId=collection_id,
 		FaceMatchThreshold=threshold,
 	)
-    return response['FaceMatches']
+    return get_faces(response['FaceMatches'])
+
+def get_faces(faceMatches):
+    face_ids = []
+    for i in faceMatches:
+        face_ids.append(str(i.get('Face').get('FaceId')).replace(' ', ''))
+    return face_ids

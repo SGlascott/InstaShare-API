@@ -16,3 +16,6 @@ class Contact(models.Model):
     last_name = models.CharField(max_length=50)
     phone_number = models.CharField(max_length=13)
     face_id = models.CharField(max_length=50, null=True)
+
+    def __str__(self):
+        return str(self.user.id) + ': ' +str(self.id)

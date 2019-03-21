@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from restAPI import models
-
+from .Tools.aws import CollectionTools
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer used for parsing our User JSON Data
@@ -18,7 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.UserExtension
-        fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'phoneNumber')
+        fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name', 'phone_number')
         write_only_fields = ('password',)
         read_only_fields = ('id',)
 
@@ -29,10 +29,14 @@ class UserSerializer(serializers.ModelSerializer):
             **user_data
         )
         user.is_staff = False
-        userExention = models.UserExtension.objects.create(user=user, **validated_data)
+
+        collection_id = CollectionTools.creating_a_collection(user.id)
+
+        userExention = models.UserExtension.objects.create(user=user, contacts_collection_id=collection_id, **validated_data)
 
         return userExention
 
+#Serializer for contact view
 class ContactSerializer(serializers.ModelSerializer):  
     class Meta:
         model = models.Contact
@@ -41,26 +45,33 @@ class ContactSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         #upload to AWS and save collectionID here:
-        contact = models.Contact.objects.create(face_id='1231231', **validated_data)
+        contact = models.Contact.objects.create(**validated_data)
 
         return contact
 
+#Second serializer for contact upload, used for seperating the contact photo from the data.
 class ContactsObjectSerializer(serializers.Serializer):
-    contact_photo = serializers.ImageField()
+    contact_photo = serializers.ImageField()    
     class Meta:
         fields = ('contact_photo', )
     
     def create(self, validated_data):
-        return contact(**validated_data)
+        return ContactsObjectSerializer.contactObj(validated_data.pop('contact_photo'))
     
-    class contact(object):
+    class contactObj(object):
         def __init__(self, photo):
             self.photo = photo
-        def __str__(self):
-            if photo != None:
-                return 'VALID'
-            else:
-                return 'Not Valid'
 
+class RekognitionSerializer(serializers.Serializer):
+    group_photo = serializers.ImageField()
+    class Meta:
+        fields = ('group_photo',)
+    
+    class rekognitionImage(object):
+        def __init__(self, photo):
+            self.photo = photo
+    
+    def create(self, validated_data):
+        return RekognitionSerializer.rekognitionImage(validated_data.pop('contact_photo'))
 
 

@@ -8,8 +8,8 @@ def get_credentials():
             cred_file = csv.reader(csvfile)
             data = [row for row in cred_file]
             creds = {
-                'access': str(data[1][2]),
-                'secret': str(data[1][3]),
+                'access': str(data[1][0]).replace(' ', ''),
+                'secret': str(data[1][1]).replace(' ', ''),
                 'bucket': 'instashare-images'
             }
             return creds

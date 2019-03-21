@@ -9,6 +9,7 @@ from rest_framework import status
 from restAPI import models, Serializers
 
 from .Tools.aws import CollectionTools
+from .Tools.DevOps import credentials
 
 # Returns list of users if staff otherwise it returns the user who calls it
 class UserList(APIView):

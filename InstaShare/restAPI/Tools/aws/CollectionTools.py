@@ -1,13 +1,16 @@
 import boto3
 from botocore.client import Config
+from ..DevOps.credentials import get_credentials
 
-bucket_name = ''
-ACCESS_KEY_ID = ''
-ACCESS_SECRET_KEY = ''
+creds = get_credentials()
+bucket_name = creds.get('bucket')
+ACCESS_KEY_ID = creds.get('access')
+ACCESS_SECRET_KEY = creds.get('secret')
 
 # "creating a collection" function takes user_id as parameter
 # and creates a collection
 # returns a newly created collection's id / name
+
 def creating_a_collection(user_id):
     collection_id = 'Collection-' + str(user_id)
     client = boto3.client('rekognition')

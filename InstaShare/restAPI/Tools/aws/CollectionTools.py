@@ -1,15 +1,18 @@
 import boto3
 from botocore.client import Config
+from ..DevOps.credentials import get_credentials
+import datetime
 
-bucket_name = 'instashare-images'
-ACCESS_KEY_ID = 'AKIAJZOS6BDZWQF4TG2Q'
-ACCESS_SECRET_KEY = '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'
+creds = get_credentials()
+bucket_name = creds.get('bucket')
+ACCESS_KEY_ID = creds.get('access')
+ACCESS_SECRET_KEY = creds.get('secret')
 
 # "creating a collection" function takes user_id as parameter
 # and creates a collection
 # returns a newly created collection's id / name
 def creating_a_collection(user_id):
-    collection_id = 'Collection-' + str(user_id)
+    collection_id = 'ScottCollection-' + str(user_id)
     client = boto3.client('rekognition')
 
     # Create a collection
@@ -23,16 +26,25 @@ def creating_a_collection(user_id):
 
 #Changed user_id to contact_id because user_id would produce same file names for every contact.
 def upload_image_to_AWS(user_id, image):
-    image_name = 'image-' + str(user_id) + '.jpg'
+    try:
+        s3.create_bucket(Bucket=bucket_name)
+    except:
+        print('bucket exists')
 
+    image_name = str(datetime.datetime.now()) + '_' + str(user_id)
+    image_name = image_name.replace(' ', '_')
+    image_name = image_name.replace('.', '_')
+    image_name = image_name.replace(':', '_')
+    image_name = image_name.replace('-', '_')
+    image_name = image_name  + '.jpg'
+    
     s3 = boto3.resource(
         's3',
         aws_access_key_id=ACCESS_KEY_ID,
         aws_secret_access_key=ACCESS_SECRET_KEY,
         config=Config(signature_version='s3v4')
     )
-    s3.Bucket(bucket_name).put_object(Key=image_name, Body=image)
-
+    resp = s3.Bucket(bucket_name).put_object(Key=image_name, Body=image)
     # for testing
     #print("Done uploading")
 
@@ -42,18 +54,16 @@ def upload_image_to_AWS(user_id, image):
 # and adds those faces to the collection
 # returns a list of face ids that is in the image
 def adding_faces_to_a_collection(user_id, collection_id, image):
-
+    
     # Uploading image to AWS bucket
     image_name = upload_image_to_AWS(user_id, image)
-
     external_image_id = image_name
     client = boto3.client('rekognition')
     response = client.index_faces(CollectionId=collection_id,
-                                    Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
+                                    DetectionAttributes=['ALL'],
                                     ExternalImageId=external_image_id,
-                                    MaxFaces=100,
-                                    QualityFilter="AUTO",
-                                    DetectionAttributes=['ALL'])
+                                    Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},                               
+                                    )
     face_ids = []
     for faceRecord in response['FaceRecords']:
         face_ids.append(faceRecord['Face']['FaceId'])

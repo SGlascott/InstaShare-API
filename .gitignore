@@ -10,6 +10,7 @@ pip-delete-this-directory.txt
 *.log
 *.pot
 *.pyc
+*.csv
 
 env/
 

@@ -62,5 +62,16 @@ class ContactsObjectSerializer(serializers.Serializer):
         def __init__(self, photo):
             self.photo = photo
 
+class RekognitionSerializer(serializers.Serializer):
+    group_photo = serializers.ImageField()
+    class Meta:
+        fields = ('group_photo',)
+    
+    class rekognitionImage(object):
+        def __init__(self, photo):
+            self.photo = photo
+    
+    def create(self, validated_data):
+        return RekognitionSerializer.rekognitionImage(validated_data.pop('contact_photo'))
 
 

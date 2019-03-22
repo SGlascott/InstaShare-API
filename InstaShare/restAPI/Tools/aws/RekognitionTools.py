@@ -51,6 +51,7 @@ def searching_for_a_face_using_its_face_ID(collection_id, list_of_face_ids):
 
 def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
     image_name = CollectionTools.upload_image_to_AWS(user_id, group_photo)
+    print(image_name)
     rekognition = boto3.client("rekognition")
     response = rekognition.search_faces_by_image(
 		Image={
@@ -62,6 +63,7 @@ def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
 		CollectionId=collection_id,
 		FaceMatchThreshold=threshold,
 	)
+    print(response)
     return get_faces(response['FaceMatches'])
 
 def get_faces(faceMatches):

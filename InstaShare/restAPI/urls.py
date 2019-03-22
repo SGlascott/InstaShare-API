@@ -16,4 +16,5 @@ urlpatterns = [
     path('register/', views.CreateUserView.as_view()),
     path('uploadContact/', views.ContactView.as_view()),
     path('demo/', views.RekognitionView.as_view()),
+    path('demo64/', views.RekognitionViewB64.as_view()),
 ]

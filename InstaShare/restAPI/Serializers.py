@@ -3,6 +3,12 @@ from rest_framework import serializers
 from restAPI import models
 from .Tools.aws import CollectionTools
 
+from django.core.files import File
+import base64
+
+from PIL import Image
+
+import datetime
 class UserSerializer(serializers.ModelSerializer):
     """Serializer used for parsing our User JSON Data
     
@@ -78,5 +84,15 @@ class ContactRekognitionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Contact
         fields = ('id', 'first_name', 'last_name')
+
+class ImageBase64(serializers.Serializer):
+    base_64 = serializers.CharField()
+    class Meta:
+        fields = ('base_64',)
+
+    def create(self, validated_data):
+        image_data = base64.b64decode(validated_data.pop('base_64'))
+        return image_data
+    
 
 

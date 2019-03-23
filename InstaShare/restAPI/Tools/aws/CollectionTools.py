@@ -37,7 +37,7 @@ def upload_image_to_AWS(user_id, image):
     image_name = image_name.replace(':', '_')
     image_name = image_name.replace('-', '_')
     image_name = image_name  + '.jpg'
-    
+
     s3 = boto3.resource(
         's3',
         aws_access_key_id=ACCESS_KEY_ID,
@@ -79,4 +79,4 @@ def adding_faces_to_a_collection(user_id, collection_id, image):
     # for testing
     #print("Done adding_faces_to_a_Collection")
 
-    return list_of_face_ids[0]
+    return str(list_of_face_ids[0])

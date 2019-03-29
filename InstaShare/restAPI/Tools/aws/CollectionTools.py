@@ -59,6 +59,16 @@ def adding_faces_to_a_collection(user_id, collection_id, image):
     image_name = upload_image_to_AWS(user_id, image)
     external_image_id = image_name
     client = boto3.client('rekognition')
+
+    detect_faces_response = client.detect_faces(Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
+                                   Attributes=['ALL'])
+    number_of_faces = 0
+    for faceDetail in detect_faces_response['FaceDetails']:
+        number_of_faces = number_of_faces+1
+
+    if(number_of_faces == 0) or (number_of_faces > 1):
+        return -1
+
     response = client.index_faces(CollectionId=collection_id,
                                     DetectionAttributes=['ALL'],
                                     ExternalImageId=external_image_id,
@@ -70,11 +80,10 @@ def adding_faces_to_a_collection(user_id, collection_id, image):
 
     # striping face_ids
     list_of_face_ids = []
-    n = 0
     for i in face_ids:
         temp = i.strip("'")
         list_of_face_ids.append(temp)
-        n += 1
+
 
     # for testing
     #print("Done adding_faces_to_a_Collection")

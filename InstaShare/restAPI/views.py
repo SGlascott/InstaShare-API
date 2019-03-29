@@ -49,7 +49,7 @@ class ContactView(APIView):
             face_id = CollectionTools.adding_faces_to_a_collection(request.user.id, user_ext.contacts_collection_id, contact_photo.photo)
             print('Face ID: ', face_id)
             serializer = Serializers.ContactSerializer(data=request.data)
-            if serializer.is_valid():
+            if serializer.is_valid() and face_id != -1::
                 serializer.save(user = request.user, face_id=face_id)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -65,7 +65,7 @@ class ContactView64(APIView):
             face_id = CollectionTools.adding_faces_to_a_collection(request.user.id, user_ext.contacts_collection_id, contact_photo)
             print('Face ID: ', face_id)
             serializer = Serializers.ContactSerializer(data=request.data)
-            if serializer.is_valid():
+            if serializer.is_valid() and face_id != -1::
                 serializer.save(user = request.user, face_id=face_id)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -77,27 +77,27 @@ class RekognitionView(APIView):
         if group_photo.is_valid():
             group_photo = group_photo.save()
             user_id = request.user.id
-            print('userId: ', user_id)
+            #print('userId: ', user_id)
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
-            print('col: ', collection_id)
+            #print('col: ', collection_id)
             face_ids = RekognitionTools.search_faces_by_image(user_id, group_photo.photo, collection_id)
             print(len(face_ids))
-            contacts = None
+            contacts = []
             for i in face_ids:
-                print(i)
                 try:
-                    contacts = models.Contact.objects.get(face_id=i)
+                    contacts.append(models.Contact.objects.get(face_id=i))
                     print(i, 'found')
                 except ObjectDoesNotExist:
-                    print(' Not found')
+                    pass
             if contacts == None:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             else:
-                contact_serializer = Serializers.ContactRekognitionSerializer(data = {'id': contacts.pk, 'first_name': contacts.first_name, 'last_name': contacts.last_name})
-            if contact_serializer.is_valid():
+                contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
                 return Response(contact_serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            #if contact_serializer.is_valid():
+                #return Response(contact_serializer.data, status=status.HTTP_200_OK)
+            #else:
+                #return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -108,16 +108,16 @@ class RekognitionViewB64(APIView):
             print(group_photo_serializer)
             group_photo_serializer = group_photo_serializer.save()
             user_id = request.user.id
-            print('photo: ', group_photo_serializer)
+            #print('photo: ', group_photo_serializer)
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
-            print('col: ', collection_id)
+            #print('col: ', collection_id)
             face_ids = RekognitionTools.search_faces_by_image(user_id, group_photo_serializer, collection_id)
             print(len(face_ids))
             contacts = None
             for i in face_ids:
                 print(i)
                 try:
-                    contacts = models.Contact.objects.get(face_id=i)
+                    contacts.append(models.Contact.objects.get(face_id=i))
                     print(i, 'found')
                 except ObjectDoesNotExist:
                     print(' Not found')

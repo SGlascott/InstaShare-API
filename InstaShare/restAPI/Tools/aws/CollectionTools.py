@@ -29,7 +29,7 @@ def upload_image_to_AWS(user_id, image):
     try:
         s3.create_bucket(Bucket=bucket_name)
     except:
-        print('bucket exists')
+        pass
 
     image_name = str(datetime.datetime.now()) + '_' + str(user_id)
     image_name = image_name.replace(' ', '_')

@@ -80,9 +80,11 @@ class RekognitionSerializer(serializers.Serializer):
     def create(self, validated_data):
         return RekognitionSerializer.rekognitionImage(validated_data.pop('group_photo'))
 
-class ContactRekognitionSerializer(serializers.ModelSerializer):
+class ContactRekognitionSerializer(serializers.Serializer):
+    id=serializers.IntegerField()
+    first_name=serializers.CharField()
+    last_name=serializers.CharField()
     class Meta:
-        model = models.Contact
         fields = ('id', 'first_name', 'last_name')
 
 class ImageBase64(serializers.Serializer):

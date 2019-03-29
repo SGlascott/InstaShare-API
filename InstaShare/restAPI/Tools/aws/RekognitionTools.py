@@ -72,9 +72,13 @@ def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
             FaceId=id,
             FaceMatchThreshold=threshold
         )
-        #print(matched_face['FaceMatches'])
+        #print(matched_face)
         if matched_face['FaceMatches'] != []:
             faces_arr.append(matched_face['FaceMatches'][0].get('Face').get('FaceId'))
+
+
+    deletion = rekognition.delete_faces(CollectionId=collection_id,
+                               FaceIds=get_faces(response['FaceRecords']))       
     return faces_arr
 
 def get_faces(FaceRecords):

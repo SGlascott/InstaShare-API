@@ -50,7 +50,7 @@ class ContactView(APIView):
             print('Face ID: ', face_id)
             serializer = Serializers.ContactSerializer(data=request.data)
             if serializer.is_valid() and face_id != -1:
-                serializer.save(user = request.user, face_id=face_id)
+                serializer.save(user = request.user, face_id=str(face_id[0]))
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -66,7 +66,7 @@ class ContactView64(APIView):
             print('Face ID: ', face_id)
             serializer = Serializers.ContactSerializer(data=request.data)
             if serializer.is_valid() and face_id != -1:
-                serializer.save(user = request.user, face_id=face_id)
+                serializer.save(user = request.user, face_id=str(face_id[0]))
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)

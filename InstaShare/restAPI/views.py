@@ -46,10 +46,10 @@ class ContactView(APIView):
             user_ext = models.UserExtension.objects.get(user=request.user)
             #dont know if its saving photo
             contact_photo = contact_photo.save()
-            face_id = CollectionTools.adding_faces_to_a_collection(request.user.id, user_ext.contacts_collection_id, contact_photo.photo)
+            face_id = CollectionTools.adding_faces_to_a_collection(request.user.id, user_ext.contacts_collection_id, contact_photo.photo, True)
             print('Face ID: ', face_id)
             serializer = Serializers.ContactSerializer(data=request.data)
-            if serializer.is_valid() and face_id != -1::
+            if serializer.is_valid() and face_id != -1:
                 serializer.save(user = request.user, face_id=face_id)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -62,10 +62,10 @@ class ContactView64(APIView):
             user_ext = models.UserExtension.objects.get(user=request.user)
             #dont know if its saving photo
             contact_photo = contact_photo.save()
-            face_id = CollectionTools.adding_faces_to_a_collection(request.user.id, user_ext.contacts_collection_id, contact_photo)
+            face_id = CollectionTools.adding_faces_to_a_collection(request.user.id, user_ext.contacts_collection_id, contact_photo, True)
             print('Face ID: ', face_id)
             serializer = Serializers.ContactSerializer(data=request.data)
-            if serializer.is_valid() and face_id != -1::
+            if serializer.is_valid() and face_id != -1:
                 serializer.save(user = request.user, face_id=face_id)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -80,7 +80,7 @@ class RekognitionView(APIView):
             #print('userId: ', user_id)
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
             #print('col: ', collection_id)
-            face_ids = RekognitionTools.search_faces_by_image(user_id, group_photo.photo, collection_id)
+            face_ids = RekognitionTools.searching_for_a_face_using_its_face_id(user_id, group_photo.photo, collection_id)
             print(len(face_ids))
             contacts = []
             for i in face_ids:
@@ -111,7 +111,7 @@ class RekognitionViewB64(APIView):
             #print('photo: ', group_photo_serializer)
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
             #print('col: ', collection_id)
-            face_ids = RekognitionTools.search_faces_by_image(user_id, group_photo_serializer, collection_id)
+            face_ids = RekognitionTools.searching_for_a_face_using_its_face_id(user_id, group_photo_serializer, collection_id)
             print(len(face_ids))
             contacts = []
             for i in face_ids:

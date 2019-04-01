@@ -12,8 +12,7 @@ class UserExtension(models.Model):
 
 class Contact(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=13)
     face_id = models.CharField(max_length=50, null=True)
 

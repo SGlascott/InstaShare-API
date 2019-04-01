@@ -46,7 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ContactSerializer(serializers.ModelSerializer):  
     class Meta:
         model = models.Contact
-        fields = ('id', 'first_name', 'last_name', 'phone_number')
+        fields = ('id', 'name', 'phone_number')
         read_only_fields = ('id',)
 
     def create(self, validated_data):
@@ -82,10 +82,9 @@ class RekognitionSerializer(serializers.Serializer):
 
 class ContactRekognitionSerializer(serializers.Serializer):
     id=serializers.IntegerField()
-    first_name=serializers.CharField()
-    last_name=serializers.CharField()
+    name=serializers.CharField()
     class Meta:
-        fields = ('id', 'first_name', 'last_name')
+        fields = ('id', 'name')
 
 class ImageBase64(serializers.Serializer):
     base_64 = serializers.CharField()

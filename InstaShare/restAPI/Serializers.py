@@ -83,8 +83,9 @@ class RekognitionSerializer(serializers.Serializer):
 class ContactRekognitionSerializer(serializers.Serializer):
     id=serializers.IntegerField()
     name=serializers.CharField()
+    phone_number=serializers.CharField()
     class Meta:
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'phone_number')
 
 class ImageBase64(serializers.Serializer):
     base_64 = serializers.CharField()

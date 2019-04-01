@@ -63,6 +63,8 @@ def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
 		CollectionId=collection_id,
         MaxFaces=15,
 	)
+    if response['FaceRecords'] == []:
+        return []
     #print(get_faces(response['FaceRecords']))
     faces_arr = []
     for id in get_faces(response['FaceRecords']):

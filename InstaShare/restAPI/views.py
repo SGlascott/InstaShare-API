@@ -117,7 +117,7 @@ class RekognitionViewB64(APIView):
             for i in face_ids:
                 try:
                     contacts.append(models.Contact.objects.get(face_id=i))
-                    print(contacts[-1])
+                    #print(contacts[-1])
                 except ObjectDoesNotExist:
                     pass
             if contacts == None:
@@ -128,5 +128,14 @@ class RekognitionViewB64(APIView):
             #else:
              #   return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+class BatchUploadView(APIView):
+    def post(self, request, format=None):
+        photos = []
+        for i in request.data.pop('group_photo'):
+            photos.append(i) 
+        print(photos)
+
+        return Response(status=status.HTTP_200_OK)
 
 

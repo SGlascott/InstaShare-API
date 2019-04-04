@@ -12,7 +12,11 @@ ACCESS_SECRET_KEY = creds.get('secret')
 # and creates a collection
 # returns a newly created collection's id / name
 def creating_a_collection(user_id):
-    collection_id = 'ScottCollection-' + str(user_id)
+    collection_id = str(datetime.datetime.now()) + '_' + str(user_id)
+    collection_id = collection_id.replace(' ', '_')
+    collection_id = collection_id.replace('.', '_')
+    collection_id = collection_id.replace(':', '_')
+    collection_id = collection_id.replace('-', '_')
     client = boto3.client('rekognition')
 
     # Create a collection

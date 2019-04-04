@@ -68,9 +68,18 @@ class ContactsObjectSerializer(serializers.Serializer):
         def __init__(self, photo):
             self.photo = photo
 
+class RekognitionListSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        print(validated_data)
+        photos = []
+        for item in validated_data:
+            print(item)
+        return photos
+
 class RekognitionSerializer(serializers.Serializer):
     group_photo = serializers.ImageField()
     class Meta:
+        list_serializer_class = RekognitionListSerializer
         fields = ('group_photo',)
     
     class rekognitionImage(object):
@@ -78,6 +87,7 @@ class RekognitionSerializer(serializers.Serializer):
             self.photo = photo
     
     def create(self, validated_data):
+        print('single called')
         return RekognitionSerializer.rekognitionImage(validated_data.pop('group_photo'))
 
 class ContactRekognitionSerializer(serializers.Serializer):
@@ -95,6 +105,21 @@ class ImageBase64(serializers.Serializer):
     def create(self, validated_data):
         image_data = base64.b64decode(validated_data.pop('base_64'))
         return image_data
+
+
+class BatchListSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        print(validated_data)
+        photos = []
+        for item in validated_data:
+            print(item)
+        return photos
+
+class BatchSerializer(serializers.Serializer):
+    TemporaryUploadedFile = serializers.ImageField()
+    class Meta:
+        list_serializer_class = BatchListSerializer
+        fields = ('TemporaryUploadedFile',) 
     
 
 

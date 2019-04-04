@@ -89,6 +89,7 @@ def get_faces(FaceRecords):
         face_ids.append(str(i.get('Face').get('FaceId')).replace(' ', ''))
     return face_ids
 
+#not used yet
 def batch_upload(user_id, group_photos, collection_id, threshold=80):
     #Create collection of all photos uploaded with create_collection
     #loop with index_faces to add all faces to new collection
@@ -124,9 +125,6 @@ def batch_upload(user_id, group_photos, collection_id, threshold=80):
             tokens=False
     
 
-
-
-
 def index_faces(image_name, collection_id):
     rekognition = boto3.client("rekognition")
     response = rekognition.index_faces(
@@ -140,5 +138,6 @@ def index_faces(image_name, collection_id):
         MaxFaces=15,
 	)
     return response
+    
 #Use compare_faces
 #def find_single_face()

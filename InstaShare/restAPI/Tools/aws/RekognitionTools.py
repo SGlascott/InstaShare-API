@@ -27,9 +27,6 @@ def searching_for_a_face_using_its_face_id(user_id, group_photo, collection_id, 
             striped_id = (match['Face']['FaceId']).strip("'")
             matched_face_ids.append(striped_id)
 
+
     # for testing
     #print("Done searching_for_a_face_using_its_face_ID")
-    CollectionTools.deleting_faces_from_a_Collection(collection_id, list_of_face_ids)
-
-    print(matched_face_ids)
-    return matched_face_ids

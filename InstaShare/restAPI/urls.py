@@ -18,4 +18,5 @@ urlpatterns = [
     path('uploadContact64/', views.ContactView64.as_view()),
     path('demo/', views.RekognitionView.as_view()),
     path('demo64/', views.RekognitionViewB64.as_view()),
+    path('batchupload/', views.BatchUploadView.as_view()),
 ]

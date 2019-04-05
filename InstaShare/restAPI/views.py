@@ -117,7 +117,7 @@ class RekognitionViewB64(APIView):
             for i in face_ids:
                 try:
                     contacts.append(models.Contact.objects.get(face_id=i))
-                    print(contacts[-1])
+                    #print(contacts[-1])
                 except ObjectDoesNotExist:
                     pass
             if contacts == None:
@@ -128,5 +128,29 @@ class RekognitionViewB64(APIView):
             #else:
              #   return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+#currently O(n^2) but we should be able to optimize to O(n)
+class BatchUploadView(APIView):
+    def post(self, request, format=None):
+        try:
+            photos = []
+            for i in request.data.pop('group_photo'):
+                photos.append(i) 
+            user_id = request.user.id
+            collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
+            removed_doups = []
+            for photo in photos:
+                photo_faces = RekognitionTools.searching_for_a_face_using_its_face_id(user_id, photo, collection_id)
+
+                for face in photo_faces:
+                    if face not in removed_doups:
+                        removed_doups.append(face)
+            
+            contacts = models.Contact.objects.filter(face_id__in=removed_doups)
+            print(contacts)
+            contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
+            return Response(contact_serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 

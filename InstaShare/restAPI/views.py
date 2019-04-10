@@ -80,7 +80,7 @@ class RekognitionView(APIView):
             #print('userId: ', user_id)
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
             #print('col: ', collection_id)
-            face_ids = RekognitionTools.searching_for_a_face_using_its_face_id(user_id, group_photo.photo, collection_id)
+            face_ids = RekognitionTools.search_faces_by_image(user_id, group_photo.photo, collection_id)
             print(len(face_ids))
             contacts = []
             for i in face_ids:
@@ -111,7 +111,7 @@ class RekognitionViewB64(APIView):
             #print('photo: ', group_photo_serializer)
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
             #print('col: ', collection_id)
-            face_ids = RekognitionTools.searching_for_a_face_using_its_face_id(user_id, group_photo_serializer, collection_id)
+            face_ids = RekognitionTools.search_faces_by_image(user_id, group_photo_serializer, collection_id)
             print(len(face_ids))
             contacts = []
             for i in face_ids:
@@ -129,25 +129,29 @@ class RekognitionViewB64(APIView):
              #   return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-#currently O(n^2) but we should be able to optimize to O(n)
 class BatchUploadView(APIView):
     def post(self, request, format=None):
         try:
             photos = []
             for i in request.data.pop('group_photo'):
-                photos.append(i) 
+                photos.append(i)
             user_id = request.user.id
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
-            removed_doups = []
+            list_of_added_face_ids = []
             for photo in photos:
-                photo_faces = RekognitionTools.searching_for_a_face_using_its_face_id(user_id, photo, collection_id)
+                added_face_ids = CollectionTools.adding_faces_to_a_collection(request.user.id, collection_id, photo)
+                list_of_added_face_ids = list_of_added_face_ids + added_face_ids
 
-                for face in photo_faces:
-                    if face not in removed_doups:
-                        removed_doups.append(face)
-            
-            contacts = models.Contact.objects.filter(face_id__in=removed_doups)
+            #change object.all to specific user's contacts face ids
+            all_contacts_face_ids = models.Contact.objects.all().values_list('face_id', flat=True)
+            new_contacts_face_ids = []
+            for face_id in all_contacts_face_ids:
+                new_contacts_face_ids.append(face_id)
+            matched_contacts = RekognitionTools.search_faces_by_contact(collection_id, list_of_added_face_ids, new_contacts_face_ids)
+            contacts = models.Contact.objects.filter(face_id__in=matched_contacts)
+            print('contacts')
             print(contacts)
+
             contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:

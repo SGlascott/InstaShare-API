@@ -26,6 +26,7 @@ def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
         for match in face_matches:
             striped_id = (match['Face']['FaceId']).strip("'")
             matched_face_ids.append(striped_id)
+            break
 
 
     # for testing

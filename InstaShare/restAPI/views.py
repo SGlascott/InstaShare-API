@@ -163,7 +163,13 @@ class BatchUploadView(APIView):
                 list_of_added_face_ids = list_of_added_face_ids + added_face_ids
 
             #change object.all to specific user's contacts face ids
-            all_contacts_face_ids = models.Contact.objects.all().values_list('face_id', flat=True)
+            try:
+                all_contacts_face_ids = models.Contact.objects.filter(user=request.user)
+                print(all_contacts_face_ids)
+            except:
+                print('errs')
+            print('all_contacts_face_ids')
+            print(all_contacts_face_ids)
             new_contacts_face_ids = []
             for face_id in all_contacts_face_ids:
                 new_contacts_face_ids.append(face_id)

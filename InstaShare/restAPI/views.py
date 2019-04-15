@@ -171,10 +171,7 @@ class BatchUploadView(APIView):
         try:
             photos = []
             for i in request.data.pop('group_photo'):
-                try:
-                    photos.append(i)
-                except:
-                    return Response(status=status.HTTP_400_BAD_REQUEST)
+                photos.append(i)
             user_id = request.user.id
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
             removed_doups = []

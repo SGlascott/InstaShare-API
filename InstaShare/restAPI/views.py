@@ -80,17 +80,17 @@ class ContactView64(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        def put(self, request, format=None, id):
-            try:
-                contact = models.Contact.objects.get(id=id)
-            except:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            
-            contactSerializer = Serializers.ContactSerializer(contact, data=request.data)
-            if contactSerializer.is_valid():
-                contactSerializer.save()
-                return Response(contactSerializer.data, status=status.HTTP_200_OK)
-            return Response(contactSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, id, format=None):
+        try:
+            contact = models.Contact.objects.get(id=id)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        contactSerializer = Serializers.ContactSerializer(contact, data=request.data)
+        if contactSerializer.is_valid():
+            contactSerializer.save()
+            return Response(contactSerializer.data, status=status.HTTP_200_OK)
+        return Response(contactSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RekognitionView(APIView):

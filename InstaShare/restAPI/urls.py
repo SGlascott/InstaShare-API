@@ -15,9 +15,9 @@ urlpatterns = [
     path('users/<int:pk>/', views.UserDetail.as_view()),
     path('register/', views.CreateUserView.as_view()),
     path('uploadContact/', views.ContactView.as_view()),
-    path('uploadContact64/', views.ContactView64.as_view()),
-    path('uploadContact64/<int:id>', views.ContactView64.as_view()),
-    path('demo/', views.RekognitionView.as_view()),
-    path('demo64/', views.RekognitionViewB64.as_view()),
+    path('uploadContactMobile/', views.ContactView64.as_view()),
+    path('uploadContactMobile/<int:id>', views.ContactView64.as_view()),
+    path('singlephoto/', views.RekognitionView.as_view()),
+    path('singlephotoMobile/', views.RekognitionViewB64.as_view()),
     path('batchupload/', views.BatchUploadView.as_view()),
 ]

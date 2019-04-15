@@ -51,9 +51,9 @@ def searching_for_a_face_using_its_face_ID(collection_id, list_of_face_ids):
 
 def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
     image_name = CollectionTools.upload_image_to_AWS(user_id, group_photo)
-    print(image_name)
+    #print(image_name)
     rekognition = boto3.client("rekognition")
-    response = rekognition.search_faces_by_image(
+    response = rekognition.index_faces(
 		Image={
 			"S3Object": {
 				"Bucket": bucket_name,
@@ -61,13 +61,83 @@ def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
 			}
 		},
 		CollectionId=collection_id,
-		FaceMatchThreshold=threshold,
+        MaxFaces=15,
 	)
-    print(response)
-    return get_faces(response['FaceMatches'])
+    if response['FaceRecords'] == []:
+        return []
+    #print(get_faces(response['FaceRecords']))
+    faces_arr = []
+    for id in get_faces(response['FaceRecords']):
+        matched_face = rekognition.search_faces(
+            CollectionId=collection_id,
+            MaxFaces=15,
+            FaceId=id,
+            FaceMatchThreshold=threshold
+        )
+        #print(matched_face)
+        if matched_face['FaceMatches'] != []:
+            faces_arr.append(matched_face['FaceMatches'][0].get('Face').get('FaceId'))
 
-def get_faces(faceMatches):
+
+    deletion = rekognition.delete_faces(CollectionId=collection_id,
+                               FaceIds=get_faces(response['FaceRecords']))       
+    return faces_arr
+
+def get_faces(FaceRecords):
     face_ids = []
-    for i in faceMatches:
+    for i in FaceRecords:
         face_ids.append(str(i.get('Face').get('FaceId')).replace(' ', ''))
     return face_ids
+
+#not used yet
+def batch_upload(user_id, group_photos, collection_id, threshold=80):
+    #Create collection of all photos uploaded with create_collection
+    #loop with index_faces to add all faces to new collection
+    #loop with search_faces to find all matches with user's contacts
+    #Delete collection delete_collection
+
+    #temp bucket
+    batch_collection = CollectionTools.creating_a_collection(user_id)
+
+    #upload images to bucket
+    photo_names = []
+    for photo in group_photos:
+        photo_names.append(CollectionTools.upload_image_to_AWS(user_id, photo))
+    
+    #index faces into new collection
+    for photo in photo_names:
+        index_faces(photo, batch_collection)
+    
+    tokens=True
+    client=boto3.client('rekognition')
+    response=client.list_faces(CollectionId=collectionId,
+                               MaxResults=10)
+    print('Faces in collection ' + collectionId) 
+    while tokens:
+        faces=response['Faces']
+        for face in faces:
+            print (face)
+        if 'NextToken' in response:
+            nextToken=response['NextToken']
+            response=client.list_faces(CollectionId=collectionId,
+                                       NextToken=nextToken,MaxResults=maxResults)
+        else:
+            tokens=False
+    
+
+def index_faces(image_name, collection_id):
+    rekognition = boto3.client("rekognition")
+    response = rekognition.index_faces(
+		Image={
+			"S3Object": {
+				"Bucket": bucket_name,
+				"Name": image_name,
+			}
+		},
+		CollectionId=collection_id,
+        MaxFaces=15,
+	)
+    return response
+    
+#Use compare_faces
+#def find_single_face()

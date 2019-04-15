@@ -56,6 +56,15 @@ class ContactView(APIView):
         return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ContactView64(APIView):
+    def get(self, request, format=None):
+        try:
+            contacts = models.Contact.objects.get(user=request.user)
+            cSerializer = Serializers.ContactSerializer(contacts, many=True)
+            return Response(cSerializer, status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+
     def post(self, request, format=None):
         contact_photo = Serializers.ImageBase64(data = request.data)
         if contact_photo.is_valid():
@@ -71,33 +80,46 @@ class ContactView64(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        def put(self, request, format=None, id):
+            try:
+                contact = models.Contact.objects.get(id=id)
+            except:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            
+            contactSerializer = Serializers.ContactSerializer(contact, data=request.data)
+            if contactSerializer.is_valid():
+                contactSerializer.save()
+                return Response(contactSerializer.data, status=status.HTTP_200_OK)
+            return Response(contactSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class RekognitionView(APIView):
     def post(self, request, format=None):
         group_photo = Serializers.RekognitionSerializer(data = request.data)
         if group_photo.is_valid():
             group_photo = group_photo.save()
             user_id = request.user.id
-            print('userId: ', user_id)
+            #print('userId: ', user_id)
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
-            print('col: ', collection_id)
+            #print('col: ', collection_id)
             face_ids = RekognitionTools.search_faces_by_image(user_id, group_photo.photo, collection_id)
             print(len(face_ids))
-            contacts = None
+            contacts = []
             for i in face_ids:
-                print(i)
                 try:
-                    contacts = models.Contact.objects.get(face_id=i)
+                    contacts.append(models.Contact.objects.get(face_id=i))
                     print(i, 'found')
                 except ObjectDoesNotExist:
-                    print(' Not found')
+                    pass
             if contacts == None:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             else:
-                contact_serializer = Serializers.ContactRekognitionSerializer(data = {'id': contacts.pk, 'first_name': contacts.first_name, 'last_name': contacts.last_name})
-            if contact_serializer.is_valid():
+                contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
                 return Response(contact_serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            #if contact_serializer.is_valid():
+                #return Response(contact_serializer.data, status=status.HTTP_200_OK)
+            #else:
+                #return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -105,30 +127,52 @@ class RekognitionViewB64(APIView):
     def post(self, request, format=None):
         group_photo_serializer = Serializers.ImageBase64(data = request.data)
         if group_photo_serializer.is_valid():
-            print(group_photo_serializer)
+            #print(group_photo_serializer)
             group_photo_serializer = group_photo_serializer.save()
             user_id = request.user.id
-            print('photo: ', group_photo_serializer)
+            #print('photo: ', group_photo_serializer)
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
-            print('col: ', collection_id)
+            #print('col: ', collection_id)
             face_ids = RekognitionTools.search_faces_by_image(user_id, group_photo_serializer, collection_id)
             print(len(face_ids))
-            contacts = None
+            contacts = []
             for i in face_ids:
-                print(i)
                 try:
-                    contacts = models.Contact.objects.get(face_id=i)
-                    print(i, 'found')
+                    contacts.append(models.Contact.objects.get(face_id=i))
+                    #print(contacts[-1])
                 except ObjectDoesNotExist:
-                    print(' Not found')
+                    pass
             if contacts == None:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             else:
-                contact_serializer = Serializers.ContactRekognitionSerializer(data = {'id': contacts.pk, 'first_name': contacts.first_name, 'last_name': contacts.last_name})
-            if contact_serializer.is_valid():
+                contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
                 return Response(contact_serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            #else:
+             #   return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+#currently O(n^2) but we should be able to optimize to O(n)
+class BatchUploadView(APIView):
+    def post(self, request, format=None):
+        try:
+            photos = []
+            for i in request.data.pop('group_photo'):
+                photos.append(i) 
+            user_id = request.user.id
+            collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
+            removed_doups = []
+            for photo in photos:
+                photo_faces = RekognitionTools.search_faces_by_image(user_id, photo, collection_id)
+
+                for face in photo_faces:
+                    if face not in removed_doups:
+                        removed_doups.append(face)
+            
+            contacts = models.Contact.objects.filter(face_id__in=removed_doups)
+            print(contacts)
+            contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
+            return Response(contact_serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 

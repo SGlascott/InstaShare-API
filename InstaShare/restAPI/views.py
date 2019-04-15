@@ -200,15 +200,14 @@ class BatchUploadViewMobile(APIView):
 
             #change object.all to specific user's contacts face ids
             try:
-                all_contacts_face_ids = models.Contact.objects.filter(user=request.user)
-                print(all_contacts_face_ids)
+                all_contacts = models.Contact.objects.filter(user=request.user)
+                print(all_contacts)
             except:
                 print('errs')
-            print('all_contacts_face_ids')
             print(all_contacts_face_ids)
             new_contacts_face_ids = []
-            for face_id in all_contacts_face_ids:
-                new_contacts_face_ids.append(face_id)
+            for contacts in all_contacts:
+                new_contacts_face_ids.append(contacts.face_id)
             matched_contacts = RekognitionTools.search_faces_by_contact(collection_id, list_of_added_face_ids, new_contacts_face_ids)
             contacts = models.Contact.objects.filter(face_id__in=matched_contacts)
             print('contacts')
@@ -217,6 +216,6 @@ class BatchUploadViewMobile(APIView):
             contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

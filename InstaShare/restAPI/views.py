@@ -164,58 +164,16 @@ class BatchUploadView(APIView):
                 added_face_ids = CollectionTools.adding_faces_to_a_collection(request.user.id, collection_id, photo)
                 list_of_added_face_ids = list_of_added_face_ids + added_face_ids
 
-            #change object.all to specific user's contacts face ids
-            all_contacts_face_ids = models.Contact.objects.filter(user=request.user)
-            print('all_contacts_face_ids')
-            print(all_contacts_face_ids)
+            all_contacts = list(models.Contact.objects.filter(user=request.user))
             new_contacts_face_ids = []
-            for face_id in all_contacts_face_ids:
-                new_contacts_face_ids.append(face_id)
-            matched_contacts = RekognitionTools.search_faces_by_contact(collection_id, list_of_added_face_ids, new_contacts_face_ids)
-            contacts = models.Contact.objects.filter(face_id__in=matched_contacts)
-            print('contacts')
-            print(contacts)
+            for contact in all_contacts:
+                new_contacts_face_ids.append(contact.face_id)
 
+            matched_contacts = RekognitionTools.search_faces_by_contact(collection_id, list_of_added_face_ids, new_contacts_face_ids)
+
+            contacts = models.Contact.objects.filter(face_id__in=matched_contacts)
+            
             contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-class BatchUploadViewMobile(APIView):
-    def post(self, request, format=None):
-        try:
-            photos = []
-            for i in request.data.pop('group_photo'):
-                try:
-                    photos.append(base64.b64decode(i))
-                except:
-                    return Response(status=status.HTTP_400_BAD_REQUEST)
-            user_id = request.user.id
-            collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
-            list_of_added_face_ids = []
-            for photo in photos:
-                added_face_ids = CollectionTools.adding_faces_to_a_collection(request.user.id, collection_id, photo)
-                list_of_added_face_ids = list_of_added_face_ids + added_face_ids
-
-            #change object.all to specific user's contacts face ids
-            try:
-                all_contacts = models.Contact.objects.filter(user=request.user)
-                print(all_contacts)
-            except:
-                print('errs')
-            print(all_contacts_face_ids)
-            new_contacts_face_ids = []
-            for contacts in all_contacts:
-                new_contacts_face_ids.append(contacts.face_id)
-            matched_contacts = RekognitionTools.search_faces_by_contact(collection_id, list_of_added_face_ids, new_contacts_face_ids)
-            contacts = models.Contact.objects.filter(face_id__in=matched_contacts)
-            print('contacts')
-            print(contacts)
-
-            contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
-            return Response(contact_serializer.data, status=status.HTTP_200_OK)
-        except:
-            return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-

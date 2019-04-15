@@ -84,7 +84,6 @@ class ContactView64(APIView):
             contact = models.Contact.objects.get(id=id)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
         contactSerializer = Serializers.ContactSerializer(contact, data=request.data)
         if contactSerializer.is_valid():
             contactSerializer.save()

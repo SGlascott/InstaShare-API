@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from restAPI import models, Serializers
 from django.core.exceptions import ObjectDoesNotExist
+import base64
 
 from .Tools.aws import CollectionTools, RekognitionTools
 from .Tools.DevOps import credentials
@@ -55,7 +56,7 @@ class ContactView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ContactView64(APIView):
+class ContactViewMobile(APIView):
     def get(self, request, format=None):
         try:
             contacts = models.Contact.objects.get(user=request.user)
@@ -120,7 +121,7 @@ class RekognitionView(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class RekognitionViewB64(APIView):
+class RekognitionViewMobile(APIView):
     def post(self, request, format=None):
         group_photo_serializer = Serializers.ImageBase64(data = request.data)
         if group_photo_serializer.is_valid():
@@ -161,25 +162,16 @@ class BatchUploadView(APIView):
                 added_face_ids = CollectionTools.adding_faces_to_a_collection(request.user.id, collection_id, photo)
                 list_of_added_face_ids = list_of_added_face_ids + added_face_ids
 
-            #change object.all to specific user's contacts face ids
-            try:
-                all_contacts_face_ids = models.Contact.objects.filter(user=request.user)
-                print(all_contacts_face_ids)
-            except:
-                print('errs')
-            print('all_contacts_face_ids')
-            print(all_contacts_face_ids)
+            all_contacts = list(models.Contact.objects.filter(user=request.user))
             new_contacts_face_ids = []
-            for face_id in all_contacts_face_ids:
-                new_contacts_face_ids.append(face_id)
-            matched_contacts = RekognitionTools.search_faces_by_contact(collection_id, list_of_added_face_ids, new_contacts_face_ids)
-            contacts = models.Contact.objects.filter(face_id__in=matched_contacts)
-            print('contacts')
-            print(contacts)
+            for contact in all_contacts:
+                new_contacts_face_ids.append(contact.face_id)
 
+            matched_contacts = RekognitionTools.search_faces_by_contact(collection_id, list_of_added_face_ids, new_contacts_face_ids)
+
+            contacts = models.Contact.objects.filter(face_id__in=matched_contacts)
+            
             contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-

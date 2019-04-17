@@ -20,4 +20,5 @@ urlpatterns = [
     path('singlephoto/', views.RekognitionView.as_view()),
     path('singlephotoMobile/', views.RekognitionViewB64.as_view()),
     path('batchupload/', views.BatchUploadView.as_view()),
+    path('batchuploadMobile/', views.BatchUploadViewMobile.as_view()),
 ]

@@ -56,6 +56,7 @@ class ContactView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#contact view for mobile use.
 class ContactView64(APIView):
     def get(self, request, format=None):
         try:
@@ -91,6 +92,7 @@ class ContactView64(APIView):
             return Response(contactSerializer.data, status=status.HTTP_200_OK)
         return Response(contactSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#single photo rekognition
 class RekognitionView(APIView):
     def post(self, request, format=None):
         group_photo = Serializers.RekognitionSerializer(data = request.data)
@@ -120,7 +122,7 @@ class RekognitionView(APIView):
                 #return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-
+#single photo rekognition for mobile
 class RekognitionViewMobile(APIView):
     def post(self, request, format=None):
         group_photo_serializer = Serializers.ImageBase64(data = request.data)
@@ -149,6 +151,7 @@ class RekognitionViewMobile(APIView):
              #   return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+#upload multiple photos for rekognition. Primarily used for testing logic before mobile dev.
 class BatchUploadView(APIView):
     def post(self, request, format=None):
         try:
@@ -172,27 +175,34 @@ class BatchUploadView(APIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+#upload multiple photos for mobile
 class BatchUploadViewMobile(APIView):
     def post(self, request, format=None):
         try:
             photos = []
             for i in request.data.pop('group_photo'):
                 photos.append(base64.b64decode(i)) 
-            user_id = request.user.id
-            collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
-            removed_doups = []
+        except:
+            return Response(Serializers.errorMsgSerializer({'msg':'Photo Error'}),status=status.HTTP_400_BAD_REQUEST)
+        user_id = request.user.id
+        collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
+        removed_doups = []
+        try:
             for photo in photos:
                 photo_faces = RekognitionTools.search_faces_by_image(user_id, photo, collection_id)
 
                 for face in photo_faces:
                     if face not in removed_doups:
                         removed_doups.append(face)
-            
+        except:
+            return Response(Serializers.errorMsgSerializer({'msg':'AWS Error'}), status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
             contacts = models.Contact.objects.filter(face_id__in=removed_doups)
             print(contacts)
             contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(contact_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 

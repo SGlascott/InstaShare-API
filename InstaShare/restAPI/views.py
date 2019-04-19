@@ -184,7 +184,7 @@ class BatchUploadViewMobile(APIView):
             for i in request.data.pop('group_photo'):
                 photos.append(base64.b64decode(i)) 
         except:
-            return Response(Serializers.errorMsgSerializer({'msg':'Photo Error'}),status=status.HTTP_400_BAD_REQUEST)
+            return Response(Serializers.errorMsgSerializer({'msg':'Photo Error'}).data,status=status.HTTP_400_BAD_REQUEST)
 
         #get the user info
         user_id = request.user.id
@@ -200,7 +200,7 @@ class BatchUploadViewMobile(APIView):
                     if face not in removed_doups:
                         removed_doups.append(face)
         except:
-            return Response(Serializers.errorMsgSerializer({'msg':'AWS Error'}), status=status.HTTP_400_BAD_REQUEST)
+            return Response(Serializers.errorMsgSerializer({'msg':'AWS Error'}).data, status=status.HTTP_400_BAD_REQUEST)
         
         #Return info to users
         try:

@@ -121,5 +121,9 @@ class BatchSerializer(serializers.Serializer):
         list_serializer_class = BatchListSerializer
         fields = ('TemporaryUploadedFile',) 
     
+class errorMsgSerializer(serializers.Serializer):
+    msg = serializers.CharField()
+    class Meta:
+        fields = ('msg')
 
 

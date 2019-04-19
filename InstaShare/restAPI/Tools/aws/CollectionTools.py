@@ -57,30 +57,51 @@ def upload_image_to_AWS(user_id, image):
 # "adding faces to a collection" function takes user_id, collection_id, image as parameters
 # and adds those faces to the collection
 # returns a list of face ids that is in the image
-def adding_faces_to_a_collection(user_id, collection_id, image):
-    
+def adding_faces_to_a_collection(user_id, collection_id, image, contact=False):
     # Uploading image to AWS bucket
     image_name = upload_image_to_AWS(user_id, image)
     external_image_id = image_name
     client = boto3.client('rekognition')
+
+    if contact == True:
+        detect_faces_response = client.detect_faces(Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
+                                                    Attributes=['ALL'])
+        number_of_faces = 0
+        for faceDetail in detect_faces_response['FaceDetails']:
+            number_of_faces = number_of_faces + 1
+
+        if (number_of_faces == 0) or (number_of_faces > 1):
+            return -1
+
     response = client.index_faces(CollectionId=collection_id,
-                                    DetectionAttributes=['ALL'],
-                                    ExternalImageId=external_image_id,
-                                    Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},                               
-                                    )
+                                  DetectionAttributes=['ALL'],
+                                  ExternalImageId=external_image_id,
+                                  Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
+                                  MaxFaces=15,
+                                  )
     face_ids = []
     for faceRecord in response['FaceRecords']:
         face_ids.append(faceRecord['Face']['FaceId'])
 
     # striping face_ids
     list_of_face_ids = []
-    n = 0
     for i in face_ids:
         temp = i.strip("'")
         list_of_face_ids.append(temp)
-        n += 1
 
     # for testing
-    #print("Done adding_faces_to_a_Collection")
+    # print("Done adding_faces_to_a_Collection")
 
-    return str(list_of_face_ids[0])
+    return list_of_face_ids
+
+
+# "deleting faces from a collection" function takes collection_id and faces_added_to_collection as parameters
+# and deletes the faces added to collection from the user's collection
+# (i.e. not user's contact image)
+# returns N/A
+def deleting_faces_from_a_Collection(collection_id, faces_added_to_collection):
+    client = boto3.client('rekognition')
+    client.delete_faces(CollectionId=collection_id,
+                        FaceIds=faces_added_to_collection)
+    # for testing
+    # print('Done deleting faces')

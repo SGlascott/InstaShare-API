@@ -178,15 +178,20 @@ class BatchUploadView(APIView):
 #upload multiple photos for mobile
 class BatchUploadViewMobile(APIView):
     def post(self, request, format=None):
+        #convert photos from base 64 to jpg and save in photos array
         try:
             photos = []
             for i in request.data.pop('group_photo'):
                 photos.append(base64.b64decode(i)) 
         except:
             return Response(Serializers.errorMsgSerializer({'msg':'Photo Error'}),status=status.HTTP_400_BAD_REQUEST)
+
+        #get the user info
         user_id = request.user.id
         collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
         removed_doups = []
+
+        #run rekognition
         try:
             for photo in photos:
                 photo_faces = RekognitionTools.search_faces_by_image(user_id, photo, collection_id)
@@ -197,6 +202,7 @@ class BatchUploadViewMobile(APIView):
         except:
             return Response(Serializers.errorMsgSerializer({'msg':'AWS Error'}), status=status.HTTP_400_BAD_REQUEST)
         
+        #Return info to users
         try:
             contacts = models.Contact.objects.filter(face_id__in=removed_doups)
             print(contacts)

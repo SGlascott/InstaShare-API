@@ -175,3 +175,27 @@ class BatchUploadView(APIView):
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+class BatchUploadViewMobile(APIView):
+    def post(self, request, format=None):
+        try:
+            photos = []
+            for i in request.data.pop('group_photo'):
+                photos.append(base64.b64decode(i)) 
+            user_id = request.user.id
+            collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
+            removed_doups = []
+            for photo in photos:
+                photo_faces = RekognitionTools.search_faces_by_image(user_id, photo, collection_id)
+
+                for face in photo_faces:
+                    if face not in removed_doups:
+                        removed_doups.append(face)
+            
+            contacts = models.Contact.objects.filter(face_id__in=removed_doups)
+            print(contacts)
+            contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
+            return Response(contact_serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+

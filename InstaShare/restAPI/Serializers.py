@@ -124,6 +124,6 @@ class BatchSerializer(serializers.Serializer):
 class errorMsgSerializer(serializers.Serializer):
     msg = serializers.CharField()
     class Meta:
-        fields('msg')
+        fields = ('msg')
 
 

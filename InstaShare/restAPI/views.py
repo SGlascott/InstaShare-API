@@ -57,7 +57,7 @@ class ContactView(APIView):
         return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #contact view for mobile use.
-class ContactView64(APIView):
+class ContactViewMobile(APIView):
     def get(self, request, format=None):
         try:
             contacts = models.Contact.objects.get(user=request.user)

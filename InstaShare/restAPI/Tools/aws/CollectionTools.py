@@ -105,3 +105,25 @@ def deleting_faces_from_a_Collection(collection_id, faces_added_to_collection):
                         FaceIds=faces_added_to_collection)
     # for testing
     # print('Done deleting faces')
+
+
+# "deleting_a_Collection" function takes collection_id as parameters
+# and deletes a user's collection
+# returns True is if it is successful, otherwise returns False
+def deleting_a_Collection(collection_id):
+    client = boto3.client('rekognition')
+    statusCode = ''
+    try:
+        response = client.delete_collection(CollectionId=collection_id)
+        statusCode = response['StatusCode']
+        print('Operation returned Status Code: ' + str(statusCode))
+        return True
+
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+            print('The collection ' + collection_id + ' was not found ')
+        else:
+            print('Error other than Not Found occurred: ' + e.response['Error']['Message'])
+        statusCode = e.response['ResponseMetadata']['HTTPStatusCode']
+        print('Operation returned Status Code: ' + str(statusCode))
+        return False

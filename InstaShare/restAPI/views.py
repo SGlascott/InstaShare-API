@@ -56,6 +56,7 @@ class ContactView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(contact_photo.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 #contact view for mobile use.
 class ContactViewMobile(APIView):
     def get(self, request, format=None):
@@ -91,6 +92,7 @@ class ContactViewMobile(APIView):
             contactSerializer.save()
             return Response(contactSerializer.data, status=status.HTTP_200_OK)
         return Response(contactSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 #single photo rekognition
 class RekognitionView(APIView):
@@ -160,16 +162,20 @@ class BatchUploadView(APIView):
                 photos.append(i)
             user_id = request.user.id
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
-            removed_doups = []
+            list_of_added_face_ids = []
             for photo in photos:
-                photo_faces = RekognitionTools.search_faces_by_image(user_id, photo, collection_id)
+                added_face_ids = CollectionTools.adding_faces_to_a_collection(request.user.id, collection_id, photo)
+                list_of_added_face_ids = list_of_added_face_ids + added_face_ids
 
-                for face in photo_faces:
-                    if face not in removed_doups:
-                        removed_doups.append(face)
+            all_contacts = list(models.Contact.objects.filter(user=request.user))
+            new_contacts_face_ids = []
+            for contact in all_contacts:
+                new_contacts_face_ids.append(contact.face_id)
+
+            matched_contacts = RekognitionTools.search_faces_by_contact(collection_id, list_of_added_face_ids, new_contacts_face_ids)
+
+            contacts = models.Contact.objects.filter(face_id__in=matched_contacts)
             
-            contacts = models.Contact.objects.filter(face_id__in=removed_doups)
-            print(contacts)
             contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:

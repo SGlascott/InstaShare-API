@@ -21,6 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
+    phone_number = serializers.CharField()
 
     class Meta:
         model = models.UserExtension

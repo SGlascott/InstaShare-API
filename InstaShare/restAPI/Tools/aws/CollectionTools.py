@@ -105,3 +105,5 @@ def deleting_faces_from_a_Collection(collection_id, faces_added_to_collection):
                         FaceIds=faces_added_to_collection)
     # for testing
     # print('Done deleting faces')
+
+#Talat is going to write delete collection here

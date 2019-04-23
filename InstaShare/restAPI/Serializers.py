@@ -21,6 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
+    phone_number = serializers.CharField()
 
     class Meta:
         model = models.UserExtension
@@ -106,6 +107,14 @@ class ImageBase64(serializers.Serializer):
         image_data = base64.b64decode(validated_data.pop('base_64'))
         return image_data
 
+class BatchSerializerNew(serializers.Serializer):
+    group_photo = serializers.CharField()
+    class Meta:
+        fields = ('group_photo',)
+
+    def create(self, validated_data):
+        image_data = base64.b64decode(validated_data.pop('group_photo'))
+        return image_data
 
 class BatchListSerializer(serializers.ListSerializer):
     def create(self, validated_data):

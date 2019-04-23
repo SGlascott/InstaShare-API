@@ -74,7 +74,7 @@ class ContactViewMobile(APIView):
             #dont know if its saving photo
             contact_photo = contact_photo.save()
             face_id = CollectionTools.adding_faces_to_a_collection(request.user.id, user_ext.contacts_collection_id, contact_photo, True)
-            print('Face ID: ', face_id)
+            #print('Face ID: ', face_id)
             serializer = Serializers.ContactSerializer(data=request.data)
             if serializer.is_valid() and face_id != -1:
                 serializer.save(user = request.user, face_id=str(face_id[0]))
@@ -187,9 +187,15 @@ class BatchUploadViewMobile(APIView):
         #convert photos from base 64 to jpg and save in photos array
         try:
             photos = []
-            for i in request.data.pop('group_photo'):
-                photos.append(base64.b64decode(i)) 
-        except:
+            photo_serializer = Serializers.ImageBase64(data=request.data, many=True)
+            if photo_serializer.is_valid():
+                photo_serializer = photo_serializer.save()
+                for i in photo_serializer:
+                    photos.append(i)
+            else:
+                return Response(photo_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(str(e))
             return Response(Serializers.errorMsgSerializer({'msg':'Photo Error'}).data,status=status.HTTP_400_BAD_REQUEST)
 
         #get the user info
@@ -211,7 +217,6 @@ class BatchUploadViewMobile(APIView):
         #Return info to users
         try:
             contacts = models.Contact.objects.filter(face_id__in=removed_doups)
-            print(contacts)
             contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:

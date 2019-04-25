@@ -17,9 +17,9 @@ def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
 
     list_of_face_ids = CollectionTools.adding_faces_to_a_collection(user_id, collection_id, group_photo)
     rekognition = boto3.client('rekognition')
+    matched_face_ids = []
 
     try:
-        matched_face_ids = []
         for face_id in list_of_face_ids:
             response = rekognition.search_faces(CollectionId=collection_id,
                                                 FaceId=face_id,

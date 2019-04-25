@@ -4,13 +4,10 @@ from botocore.client import Config
 from . import CollectionTools 
 from ..DevOps.credentials import get_credentials
 
-# creds = get_credentials()
-# bucket_name = creds.get('bucket')
-# ACCESS_KEY_ID = creds.get('access')
-# ACCESS_SECRET_KEY = creds.get('secret')
-bucket_name = 'instashare-images'
-ACCESS_KEY_ID = 'AKIAIEYW22STVFAHO2DA'
-ACCESS_SECRET_KEY = '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'
+creds = get_credentials()
+bucket_name = creds.get('bucket')
+ACCESS_KEY_ID = creds.get('access')
+ACCESS_SECRET_KEY = creds.get('secret')
 
 # "search faces by image" function takes group_photo, collection_id,
 # threshold as parameter and searches faces by image

@@ -153,7 +153,8 @@ class RekognitionViewMobile(APIView):
              #   return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-#upload multiple photos for rekognition. Primarily used for testing logic before mobile dev.
+
+# upload multiple photos for rekognition. Primarily used for testing logic before mobile dev.
 class BatchUploadView(APIView):
     def post(self, request, format=None):
         try:
@@ -162,20 +163,16 @@ class BatchUploadView(APIView):
                 photos.append(i)
             user_id = request.user.id
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
-            list_of_added_face_ids = []
+            removed_doups = []
             for photo in photos:
-                added_face_ids = CollectionTools.adding_faces_to_a_collection(request.user.id, collection_id, photo)
-                list_of_added_face_ids = list_of_added_face_ids + added_face_ids
+                photo_faces = RekognitionTools.search_faces_by_image(user_id, photo, collection_id)
 
-            all_contacts = list(models.Contact.objects.filter(user=request.user))
-            new_contacts_face_ids = []
-            for contact in all_contacts:
-                new_contacts_face_ids.append(contact.face_id)
+                for face in photo_faces:
+                    if face not in removed_doups:
+                        removed_doups.append(face)
 
-            matched_contacts = RekognitionTools.search_faces_by_contact(collection_id, list_of_added_face_ids, new_contacts_face_ids)
-
-            contacts = models.Contact.objects.filter(face_id__in=matched_contacts)
-            
+            contacts = models.Contact.objects.filter(face_id__in=removed_doups)
+            print(contacts)
             contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:

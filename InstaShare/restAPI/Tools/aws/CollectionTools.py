@@ -2,15 +2,20 @@ import boto3
 from botocore.client import Config
 from ..DevOps.credentials import get_credentials
 import datetime
+from botocore.exceptions import ClientError
 
-creds = get_credentials()
-bucket_name = creds.get('bucket')
-ACCESS_KEY_ID = creds.get('access')
-ACCESS_SECRET_KEY = creds.get('secret')
+# creds = get_credentials()
+# bucket_name = creds.get('bucket')
+# ACCESS_KEY_ID = creds.get('access')
+# ACCESS_SECRET_KEY = creds.get('secret')
+bucket_name = 'instashare-images'
+ACCESS_KEY_ID = 'AKIAIEYW22STVFAHO2DA'
+ACCESS_SECRET_KEY = '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'
 
 # "creating a collection" function takes user_id as parameter
 # and creates a collection
-# returns a newly created collection's id / name
+# returns a newly created collection's id if it is successful,
+# otherwise prints an error message
 def creating_a_collection(user_id):
     collection_id = str(datetime.datetime.now()) + '_' + str(user_id)
     collection_id = collection_id.replace(' ', '_')
@@ -20,21 +25,18 @@ def creating_a_collection(user_id):
     client = boto3.client('rekognition')
 
     # Create a collection
-    client.create_collection(CollectionId=collection_id)
+    try:
+        client.create_collection(CollectionId=collection_id)
+        return collection_id
+    except ClientError:
+        print('An error occurred when creating a collection')
 
-    return collection_id
 
 # "upload image to AWS" function takes user_id and image as parameters
 # and uploads an image to AWS bucket
 # returns uploaded image's name that is stored on the AWS S3 bucket
-
-#Changed user_id to contact_id because user_id would produce same file names for every contact.
+# if it is successful, otherwise prints an error message
 def upload_image_to_AWS(user_id, image):
-    try:
-        s3.create_bucket(Bucket=bucket_name)
-    except:
-        pass
-
     image_name = str(datetime.datetime.now()) + '_' + str(user_id)
     image_name = image_name.replace(' ', '_')
     image_name = image_name.replace('.', '_')
@@ -48,15 +50,21 @@ def upload_image_to_AWS(user_id, image):
         aws_secret_access_key=ACCESS_SECRET_KEY,
         config=Config(signature_version='s3v4')
     )
-    resp = s3.Bucket(bucket_name).put_object(Key=image_name, Body=image)
-    # for testing
-    #print("Done uploading")
 
-    return image_name
+    try:
+        s3.Bucket(bucket_name).put_object(Key=image_name, Body=image)
+        return image_name
+    except ClientError:
+        print('An error occurred when uploading an image to AWS')
 
-# "adding faces to a collection" function takes user_id, collection_id, image as parameters
-# and adds those faces to the collection
-# returns a list of face ids that is in the image
+
+# "adding faces to a collection" function takes user_id, collection_id,
+# image and contact flag as parameters and adds those faces to the collection.
+# If contact flag is true, it checks for multiple faces. If there is a one face,
+# it returns that contact face id else it returns -1.
+# Otherwise it skips checking for multiple faces and returns a list of face ids
+# that is in the image. If is not successful doing any of this,
+# it prints appropriate error message.
 def adding_faces_to_a_collection(user_id, collection_id, image, contact=False):
     # Uploading image to AWS bucket
     image_name = upload_image_to_AWS(user_id, image)
@@ -64,44 +72,46 @@ def adding_faces_to_a_collection(user_id, collection_id, image, contact=False):
     client = boto3.client('rekognition')
 
     if contact == True:
-        detect_faces_response = client.detect_faces(Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
+        try:
+            detected_faces = client.detect_faces(Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
                                                     Attributes=['ALL'])
-        number_of_faces = 0
-        for faceDetail in detect_faces_response['FaceDetails']:
-            number_of_faces = number_of_faces + 1
+            number_of_faces = 0
+            for faceDetail in detected_faces['FaceDetails']:
+                number_of_faces = number_of_faces + 1
 
-        if (number_of_faces == 0) or (number_of_faces > 1):
-            return -1
+            if (number_of_faces == 0) or (number_of_faces > 1):
+                return -1
+        except ClientError:
+            print('An error occurred when detecting a face on contact image')
 
-    response = client.index_faces(CollectionId=collection_id,
-                                  DetectionAttributes=['ALL'],
-                                  ExternalImageId=external_image_id,
-                                  Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
-                                  MaxFaces=15,
-                                  )
-    face_ids = []
-    for faceRecord in response['FaceRecords']:
-        face_ids.append(faceRecord['Face']['FaceId'])
+    try:
+        response = client.index_faces(CollectionId=collection_id,
+                                    DetectionAttributes=['ALL'],
+                                    ExternalImageId=external_image_id,
+                                    Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
+                                    MaxFaces=15,
+                                    )
+        face_ids = []
+        for faceRecord in response['FaceRecords']:
+            face_ids.append(faceRecord['Face']['FaceId'])
 
-    # striping face_ids
-    list_of_face_ids = []
-    for i in face_ids:
-        temp = i.strip("'")
-        list_of_face_ids.append(temp)
-
-    # for testing
-    # print("Done adding_faces_to_a_Collection")
-
-    return list_of_face_ids
+        # striping face_ids
+        list_of_face_ids = []
+        for i in face_ids:
+            temp = i.strip("'")
+            list_of_face_ids.append(temp)
+        return list_of_face_ids
+    except ClientError:
+        print('An error occurred when adding face/faces to collection')
 
 
 # "deleting faces from a collection" function takes collection_id and faces_added_to_collection as parameters
 # and deletes the faces added to collection from the user's collection
-# (i.e. not user's contact image)
-# returns N/A
+#if it is successful, otherwise prints an error message
 def deleting_faces_from_a_Collection(collection_id, faces_added_to_collection):
     client = boto3.client('rekognition')
-    client.delete_faces(CollectionId=collection_id,
-                        FaceIds=faces_added_to_collection)
-    # for testing
-    # print('Done deleting faces')
+    try:
+        client.delete_faces(CollectionId=collection_id,
+                            FaceIds=faces_added_to_collection)
+    except ClientError:
+        print('An error occurred when deleting faces from a collection')

@@ -217,3 +217,40 @@ class BatchUploadViewMobile(APIView):
             return Response(contact_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
+class BatchUploadViewAndroid(APIView):
+    def post(self, request, format=None):
+        #convert photos from base 64 to jpg and save in photos array
+        try:
+            photos = []
+            for i in request.data.pop('group_photo'):
+                photos.append(base64.b64decode(i)) 
+        except:
+            return Response(Serializers.errorMsgSerializer({'msg':'Photo Error'}).data,status=status.HTTP_400_BAD_REQUEST)
+
+        #get the user info
+        user_id = request.user.id
+        collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
+        removed_doups = []
+        image_urls = []
+        #run rekognition
+        try:
+            for photo in photos:
+                rek_dict = RekognitionTools.search_faces_by_image_android_batch_upload(user_id, photo, collection_id)
+                photo_faces = rek_dict.pop('face_ids')
+                image_urls.append(rek_dict.pop('url'))
+                for face in photo_faces:
+                    if face not in removed_doups:
+                        removed_doups.append(face)
+        except:
+            return Response(Serializers.errorMsgSerializer({'msg':'AWS Error'}).data, status=status.HTTP_400_BAD_REQUEST)
+        
+        #Return info to users
+        try:
+            contacts = models.Contact.objects.filter(face_id__in=removed_doups)
+            #print(contacts)
+            contact_serializer = Serializers.AndroidBatchSerializer({contacts: contacts, urls: image_urls})
+            return Response(contact_serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response(contact_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+

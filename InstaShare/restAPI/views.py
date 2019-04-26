@@ -248,7 +248,8 @@ class BatchUploadViewAndroid(APIView):
                         removed_doups.append(face)
         except:
             return Response(Serializers.errorMsgSerializer({'msg':'AWS Error'}).data, status=status.HTTP_400_BAD_REQUEST)
-        
+        print(removed_doups)
+        print(image_urls)
         #Return info to users
         try:
             contacts = models.Contact.objects.filter(face_id__in=removed_doups)

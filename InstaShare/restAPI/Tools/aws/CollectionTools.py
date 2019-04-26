@@ -4,13 +4,10 @@ from ..DevOps.credentials import get_credentials
 import datetime
 from botocore.exceptions import ClientError
 
-# creds = get_credentials()
-# bucket_name = creds.get('bucket')
-# ACCESS_KEY_ID = creds.get('access')
-# ACCESS_SECRET_KEY = creds.get('secret')
-bucket_name = 'instashare-images'
-ACCESS_KEY_ID = 'AKIATJYMXLJ52URZJYM6'
-ACCESS_SECRET_KEY = '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'
+creds = get_credentials()
+bucket_name = creds.get('bucket')
+ACCESS_KEY_ID = creds.get('access')
+ACCESS_SECRET_KEY = creds.get('secret')
 
 # "creating a collection" function takes user_id as parameter
 # and creates a collection

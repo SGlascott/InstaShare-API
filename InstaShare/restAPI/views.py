@@ -153,7 +153,8 @@ class RekognitionViewMobile(APIView):
              #   return Response(contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-#upload multiple photos for rekognition. Primarily used for testing logic before mobile dev.
+
+# upload multiple photos for rekognition. Primarily used for testing logic before mobile dev.
 class BatchUploadView(APIView):
     def post(self, request, format=None):
         try:
@@ -162,20 +163,16 @@ class BatchUploadView(APIView):
                 photos.append(i)
             user_id = request.user.id
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
-            list_of_added_face_ids = []
+            removed_doups = []
             for photo in photos:
-                added_face_ids = CollectionTools.adding_faces_to_a_collection(request.user.id, collection_id, photo)
-                list_of_added_face_ids = list_of_added_face_ids + added_face_ids
+                photo_faces = RekognitionTools.search_faces_by_image(user_id, photo, collection_id)
 
-            all_contacts = list(models.Contact.objects.filter(user=request.user))
-            new_contacts_face_ids = []
-            for contact in all_contacts:
-                new_contacts_face_ids.append(contact.face_id)
+                for face in photo_faces:
+                    if face not in removed_doups:
+                        removed_doups.append(face)
 
-            matched_contacts = RekognitionTools.search_faces_by_contact(collection_id, list_of_added_face_ids, new_contacts_face_ids)
-
-            contacts = models.Contact.objects.filter(face_id__in=matched_contacts)
-            
+            contacts = models.Contact.objects.filter(face_id__in=removed_doups)
+            print(contacts)
             contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:
@@ -218,6 +215,50 @@ class BatchUploadViewMobile(APIView):
         try:
             contacts = models.Contact.objects.filter(face_id__in=removed_doups)
             contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
+            return Response(contact_serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response(contact_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+class BatchUploadViewAndroid(APIView):
+    def post(self, request, format=None):
+        #convert photos from base 64 to jpg and save in photos array
+        try:
+            photos = []
+            photo_serializer = Serializers.ImageBase64(data=request.data, many=True)
+            if photo_serializer.is_valid():
+                photo_serializer = photo_serializer.save()
+                for i in photo_serializer:
+                    photos.append(i)
+            else:
+                return Response(photo_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(str(e))
+            return Response(Serializers.errorMsgSerializer({'msg':'Photo Error'}).data,status=status.HTTP_400_BAD_REQUEST)
+        #get the user info
+        user_id = request.user.id
+        collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
+        removed_doups = []
+        image_urls = []
+        #run rekognition
+        try:
+            for photo in photos:
+                rek_dict = RekognitionTools.search_faces_by_image_android_batch_upload(user_id, photo, collection_id)
+                photo_faces = rek_dict.pop('face_ids')
+                image_urls.append(rek_dict.pop('url'))
+                for face in photo_faces:
+                    if face not in removed_doups:
+                        removed_doups.append(face)
+        except:
+            return Response(Serializers.errorMsgSerializer({'msg':'AWS Error'}).data, status=status.HTTP_400_BAD_REQUEST)
+        #Return info to users
+        try:
+            contacts = models.Contact.objects.filter(face_id__in=removed_doups)
+            #print(contacts)
+        except:
+            return Response(Serializers.errorMsgSerializer({'msg': 'contacts model error'}))
+        try:
+            contact_serializer = Serializers.AndroidBatchSerializer({'contacts': contacts, 'urls': image_urls})
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:
             return Response(contact_serializer.errors,status=status.HTTP_400_BAD_REQUEST)

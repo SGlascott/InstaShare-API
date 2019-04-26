@@ -165,7 +165,9 @@ class BatchUploadView(APIView):
             collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
             removed_doups = []
             for photo in photos:
-                photo_faces = RekognitionTools.search_faces_by_image(user_id, photo, collection_id)
+                photo_faces = RekognitionTools.search_faces_by_image_android_batch_upload(user_id, photo, collection_id)
+                print('photo_faces')
+                print(photo_faces)
 
                 for face in photo_faces:
                     if face not in removed_doups:

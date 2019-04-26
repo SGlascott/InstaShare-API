@@ -4,10 +4,13 @@ from ..DevOps.credentials import get_credentials
 import datetime
 from botocore.exceptions import ClientError
 
-creds = get_credentials()
-bucket_name = creds.get('bucket')
-ACCESS_KEY_ID = creds.get('access')
-ACCESS_SECRET_KEY = creds.get('secret')
+# creds = get_credentials()
+# bucket_name = creds.get('bucket')
+# ACCESS_KEY_ID = creds.get('access')
+# ACCESS_SECRET_KEY = creds.get('secret')
+bucket_name = 'instashare-images'
+ACCESS_KEY_ID = 'AKIATJYMXLJ52URZJYM6'
+ACCESS_SECRET_KEY = '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'
 
 # "creating a collection" function takes user_id as parameter
 # and creates a collection
@@ -101,6 +104,46 @@ def adding_faces_to_a_collection(user_id, collection_id, image, contact=False):
     except ClientError:
         print('An error occurred when adding face/faces to collection')
 
+def adding_faces_to_a_collection_android(user_id, collection_id, image, contact=False):
+    # Uploading image to AWS bucket
+    image_name = upload_image_to_AWS(user_id, image)
+    external_image_id = image_name
+    client = boto3.client('rekognition')
+    url = 'https://s3.amazonaws.com/instashare-images/'
+
+    if contact == True:
+        try:
+            detected_faces = client.detect_faces(Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
+                                                    Attributes=['ALL'])
+            number_of_faces = 0
+            for faceDetail in detected_faces['FaceDetails']:
+                number_of_faces = number_of_faces + 1
+
+            if (number_of_faces == 0) or (number_of_faces > 1):
+                return -1
+        except ClientError:
+            print('An error occurred when detecting a face on contact image')
+
+    try:
+        response = client.index_faces(CollectionId=collection_id,
+                                    DetectionAttributes=['ALL'],
+                                    ExternalImageId=external_image_id,
+                                    Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
+                                    MaxFaces=15,
+                                    )
+        face_ids = []
+        for faceRecord in response['FaceRecords']:
+            face_ids.append(faceRecord['Face']['FaceId'])
+
+        # striping face_ids
+        list_of_face_ids = []
+        for i in face_ids:
+            temp = i.strip("'")
+            list_of_face_ids.append(temp)
+        dic = dict(face_ids = list_of_face_ids, url = url + image_name)
+        return dic
+    except ClientError:
+        print('An error occurred when adding face/faces to collection')
 
 # "deleting faces from a collection" function takes collection_id and faces_added_to_collection as parameters
 # and deletes the faces added to collection from the user's collection

@@ -22,4 +22,5 @@ urlpatterns = [
     path('batchupload/', views.BatchUploadView.as_view()),
     path('batchuploadMobile/', views.BatchUploadViewMobile.as_view(), name='batchUpload'),
     path('batchuploadAndroid/', views.BatchUploadViewAndroid.as_view(), name='batchAndroid'),
+    path('batchuploadIOS/', views.BatchUploadViewMobileiOS.as_view())
 ]

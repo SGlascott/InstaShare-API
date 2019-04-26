@@ -219,12 +219,50 @@ class BatchUploadViewMobile(APIView):
         except:
             return Response(contact_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
+class BatchUploadViewMobileiOS(APIView):
+    def post(self, request, format=None):
+        #convert photos from base 64 to jpg and save in photos array
+        try:
+            photos = []
+            for i in request.data.pop('group_photo'):
+                photos.append(base64.b64decode(i)) 
+        except Exception as e:
+            print(str(e))
+            return Response(Serializers.errorMsgSerializer({'msg':'Photo Error'}).data,status=status.HTTP_400_BAD_REQUEST)
+
+        #get the user info
+        user_id = request.user.id
+        collection_id = models.UserExtension.objects.get(user=request.user).contacts_collection_id
+        removed_doups = []
+
+        #run rekognition
+        try:
+            for photo in photos:
+                photo_faces = RekognitionTools.search_faces_by_image(user_id, photo, collection_id)
+
+                for face in photo_faces:
+                    if face not in removed_doups:
+                        removed_doups.append(face)
+        except:
+            return Response(Serializers.errorMsgSerializer({'msg':'AWS Error'}).data, status=status.HTTP_400_BAD_REQUEST)
+        
+        #Return info to users
+        try:
+            contacts = models.Contact.objects.filter(face_id__in=removed_doups)
+            contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
+            return Response(contact_serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response(contact_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 class BatchUploadViewAndroid(APIView):
     def post(self, request, format=None):
         #convert photos from base 64 to jpg and save in photos array
         try:
             photos = []
+            print('Request: ', request)
             photo_serializer = Serializers.ImageBase64(data=request.data, many=True)
             if photo_serializer.is_valid():
                 photo_serializer = photo_serializer.save()

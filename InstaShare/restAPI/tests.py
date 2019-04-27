@@ -53,8 +53,11 @@ class uploadContactsTest(TestCase):
         
     def test_upload_contact(self):
         self.token = self.client.post(reverse('restAPI:token'), {'username': 'UnitTestAcc', 'password': 'McTest1'}).data.pop('access')
+        self.assertNotEqual(self.token, None)
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.response = client.post(self.url, {'asd':'asd', 'asdd':123}, format='json')
+        self.assertEqual(self.response.status_code, status.HTTP_400_BAD_REQUEST)
         self.response = client.post(self.url, self.ContactPayloadScott, format='json')
         self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
         self.delete = CollectionTools.deleting_a_Collection(self.collection_id)
@@ -99,6 +102,7 @@ class singlePhotoTest(TestCase):
             'base_64': self.groupPhoto
         }
     def test_single_photo(self):
+        self.assertNotEqual(self.token, None)
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         self.response = client.post(reverse('restAPI:singlePhoto'), self.payload,  format='json')
@@ -152,6 +156,7 @@ class batchUploadTest(TestCase):
             {'base_64': self.groupPhoto3},
         ]
     def test_batch_upload(self):
+        self.assertNotEqual(self.token, None)
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         self.response = client.post(reverse('restAPI:batchUpload'), self.payload,  format='json')
@@ -205,10 +210,10 @@ class batchUploadAndroidTest(TestCase):
             {'base_64': self.groupPhoto3},
         ]
     def test_batch_upload(self):
+        self.assertNotEqual(self.token, None)
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         self.response = client.post(reverse('restAPI:batchAndroid'), self.payload,  format='json')
-        print(self.response.data)
         self.assertEquals(self.response.status_code, status.HTTP_200_OK)
         self.delete = CollectionTools.deleting_a_Collection(self.collection_id)
         self.assertTrue(self.delete)

@@ -289,13 +289,14 @@ class BatchUploadViewAndroid(APIView):
             #print(contacts)
         except:
             return Response(Serializers.errorMsgSerializer({'msg': 'contacts model error'}))
-        print(contacts)
-        try:
-            contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
-            #batch_serializer = Serializers.AndroidBatchSerializer({'contacts': contacts, 'urls': image_urls})
-            print (contact_serializer.data)
-            return Response(contact_serializer.data, status=status.HTTP_200_OK)
-        except:
-            return Response(contact_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        
+        contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
+        #print(contact_serializer.data)
+        batch_serializer = Serializers.AndroidBatchSerializer(data={'contacts': contact_serializer.data, 'urls': image_urls})
+        if batch_serializer.is_valid():
+            print (batch_serializer.data)
+            return Response(batch_serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(batch_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 

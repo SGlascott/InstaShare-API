@@ -42,7 +42,6 @@ def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
 def search_faces_by_image_android_batch_upload(user_id, group_photo, collection_id, threshold=80):
 
     dic_face_id_url = CollectionTools.adding_faces_to_a_collection_android(user_id, collection_id, group_photo)
-    print(dic_face_id_url)
     rekognition = boto3.client('rekognition')
     matched_face_ids = []
     try:

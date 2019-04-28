@@ -136,8 +136,9 @@ class errorMsgSerializer(serializers.Serializer):
         fields = ('msg')
 
 class AndroidBatchSerializer(serializers.Serializer):
-    contacts = ContactSerializer(many = True, read_only=True)
+    #contacts = ContactSerializer(many = True, read_only=True)
     urls = serializers.ListField()
+    contacts = serializers.JSONField()
 
     class Meta:
         fields = ('contacts', 'urls')

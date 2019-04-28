@@ -128,13 +128,11 @@ def adding_faces_to_a_collection_android(user_id, collection_id, image, contact=
                                     Image={'S3Object': {'Bucket': bucket_name, 'Name': image_name}},
                                     MaxFaces=15,
                                     )
-        print(response)
         face_ids = []
         for faceRecord in response['FaceRecords']:
             face_ids.append(faceRecord['Face']['FaceId'])
 
         # striping face_ids
-        print(face_ids)
         list_of_face_ids = []
         for i in face_ids:
             temp = i.strip("'")

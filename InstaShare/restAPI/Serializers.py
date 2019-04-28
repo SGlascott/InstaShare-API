@@ -141,3 +141,7 @@ class AndroidBatchSerializer(serializers.Serializer):
 
     class Meta:
         fields = ('contacts', 'urls')
+
+class androidPhotoSerializer(serializers.Serializer):
+    class Meta:
+        fields = ('group_photo')

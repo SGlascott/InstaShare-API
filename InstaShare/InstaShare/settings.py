@@ -26,7 +26,7 @@ SECRET_KEY = 'bw&siqn)ln^fp_odaix1dfu+*pxt*cr3r51fc6vb4l5hip%!d0'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '10.0.0.35']
 
 
 # Application definition
@@ -147,3 +147,4 @@ SIMPLE_JWT = {
 APPEND_SLASH=False
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10242880

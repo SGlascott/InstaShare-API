@@ -263,7 +263,7 @@ class BatchUploadViewAndroid(APIView):
         try:
             photos = []
             for i in request.data.pop('group_photo'):
-                photos.append(base64.b64decode(i)) 
+                photos.append(base64.b64decode(i))
         except Exception as e:
             print(str(e))
             return Response(Serializers.errorMsgSerializer({'msg':'Photo Error'}).data,status=status.HTTP_400_BAD_REQUEST)
@@ -289,8 +289,11 @@ class BatchUploadViewAndroid(APIView):
             #print(contacts)
         except:
             return Response(Serializers.errorMsgSerializer({'msg': 'contacts model error'}))
+        print(contacts)
         try:
-            contact_serializer = Serializers.AndroidBatchSerializer({'contacts': contacts, 'urls': image_urls})
+            contact_serializer = Serializers.ContactRekognitionSerializer(contacts, many=True)
+            #batch_serializer = Serializers.AndroidBatchSerializer({'contacts': contacts, 'urls': image_urls})
+            print (contact_serializer.data)
             return Response(contact_serializer.data, status=status.HTTP_200_OK)
         except:
             return Response(contact_serializer.errors,status=status.HTTP_400_BAD_REQUEST)

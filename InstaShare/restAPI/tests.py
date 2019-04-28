@@ -204,16 +204,18 @@ class batchUploadAndroidTest(TestCase):
         with open("restAPI/TestImages/GroupPhotos/3.jpg", "rb") as image_file:
             self.groupPhoto3 = base64.b64encode(image_file.read())
         
-        self.payload = [
-            {'base_64': self.groupPhoto2},
-            {'base_64': self.groupPhoto1},
-            {'base_64': self.groupPhoto3},
-        ]
+        self.payload =[{
+            'group_photo': self.groupPhoto1,
+            'group_photo': self.groupPhoto2,
+            'group_photo': self.groupPhoto3
+        }]
+        
     def test_batch_upload(self):
         self.assertNotEqual(self.token, None)
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         self.response = client.post(reverse('restAPI:batchAndroid'), self.payload,  format='json')
+        print(self.response.data)
         self.assertEquals(self.response.status_code, status.HTTP_200_OK)
         self.delete = CollectionTools.deleting_a_Collection(self.collection_id)
         self.assertTrue(self.delete)

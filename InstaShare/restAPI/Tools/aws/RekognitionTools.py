@@ -1,5 +1,6 @@
 import boto3
 from botocore.client import Config
+from botocore.exceptions import ClientError
 
 from . import CollectionTools 
 from ..DevOps.credentials import get_credentials
@@ -16,7 +17,7 @@ ACCESS_SECRET_KEY = creds.get('secret')
 def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
 
     list_of_face_ids = CollectionTools.adding_faces_to_a_collection(user_id, collection_id, group_photo)
-    rekognition = boto3.client('rekognition')
+    rekognition = boto3.client('rekognition', region_name='us-east-1')
     matched_face_ids = []
 
     try:
@@ -42,7 +43,7 @@ def search_faces_by_image(user_id, group_photo, collection_id, threshold=80):
 def search_faces_by_image_android_batch_upload(user_id, group_photo, collection_id, threshold=80):
 
     dic_face_id_url = CollectionTools.adding_faces_to_a_collection_android(user_id, collection_id, group_photo)
-    rekognition = boto3.client('rekognition')
+    rekognition = boto3.client('rekognition', region_name='us-east-1')
     matched_face_ids = []
     try:
         for face_id in dic_face_id_url.get('face_ids'):

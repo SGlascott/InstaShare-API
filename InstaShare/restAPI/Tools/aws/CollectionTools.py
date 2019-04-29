@@ -19,7 +19,7 @@ def creating_a_collection(user_id):
     collection_id = collection_id.replace('.', '_')
     collection_id = collection_id.replace(':', '_')
     collection_id = collection_id.replace('-', '_')
-    client = boto3.client('rekognition')
+    client = boto3.client('rekognition', region_name='us-east-1')
 
     # Create a collection
     try:
@@ -54,6 +54,27 @@ def upload_image_to_AWS(user_id, image):
     except ClientError:
         print('An error occurred when uploading an image to AWS')
 
+def upload_image_to_AWS_android(user_id, image):
+    image_name = str(datetime.datetime.now()) + '_' + str(user_id)
+    image_name = image_name.replace(' ', '_')
+    image_name = image_name.replace('.', '_')
+    image_name = image_name.replace(':', '_')
+    image_name = image_name.replace('-', '_')
+    image_name = image_name  + '.png'
+
+    s3 = boto3.resource(
+        's3',
+        aws_access_key_id=ACCESS_KEY_ID,
+        aws_secret_access_key=ACCESS_SECRET_KEY,
+        config=Config(signature_version='s3v4')
+    )
+
+    try:
+        s3.Bucket(bucket_name).put_object(Key=image_name, Body=image, ContentType='image/png')
+        return image_name
+    except ClientError:
+        print('An error occurred when uploading an image to AWS')
+
 
 # "adding faces to a collection" function takes user_id, collection_id,
 # image and contact flag as parameters and adds those faces to the collection.
@@ -66,7 +87,7 @@ def adding_faces_to_a_collection(user_id, collection_id, image, contact=False):
     # Uploading image to AWS bucket
     image_name = upload_image_to_AWS(user_id, image)
     external_image_id = image_name
-    client = boto3.client('rekognition')
+    client = boto3.client('rekognition', region_name='us-east-1')
 
     if contact == True:
         try:
@@ -103,9 +124,9 @@ def adding_faces_to_a_collection(user_id, collection_id, image, contact=False):
 
 def adding_faces_to_a_collection_android(user_id, collection_id, image, contact=False):
     # Uploading image to AWS bucket
-    image_name = upload_image_to_AWS(user_id, image)
+    image_name = upload_image_to_AWS_android(user_id, image)
     external_image_id = image_name
-    client = boto3.client('rekognition')
+    client = boto3.client('rekognition', region_name='us-east-1')
     url = 'https://s3.amazonaws.com/instashare-images/'
 
     if contact == True:
@@ -146,7 +167,7 @@ def adding_faces_to_a_collection_android(user_id, collection_id, image, contact=
 # and deletes the faces added to collection from the user's collection
 #if it is successful, otherwise prints an error message
 def deleting_faces_from_a_Collection(collection_id, faces_added_to_collection):
-    client = boto3.client('rekognition')
+    client = boto3.client('rekognition', region_name='us-east-1')
     try:
         client.delete_faces(CollectionId=collection_id,
                             FaceIds=faces_added_to_collection)
@@ -157,7 +178,7 @@ def deleting_faces_from_a_Collection(collection_id, faces_added_to_collection):
 # and deletes a user's collection
 # returns True is if it is successful, otherwise returns False
 def deleting_a_Collection(collection_id):
-    client = boto3.client('rekognition')
+    client = boto3.client('rekognition', region_name='us-east-1')
     statusCode = ''
     try:
         response = client.delete_collection(CollectionId=collection_id)

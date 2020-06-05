@@ -1,6 +1,6 @@
 boto3==1.9.117
 botocore==1.12.117
-Django==2.1.7
+Django==2.2.13
 django-cors-headers==2.5.2
 djangorestframework==3.9.1
 djangorestframework-simplejwt==3.3
